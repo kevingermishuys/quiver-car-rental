@@ -160,4 +160,44 @@
     window.addEventListener('load', function(){ setTimeout(injectReviewsSection, 50); });
   }
 })();
-</script></body></html>
+</script><script>
+(function(){
+  var HEADER_CLS = 'relative block whitespace-nowrap rounded px-2.5 py-2 text-[0.74rem] font-medium uppercase tracking-[0.08em] transition-colors duration-200 text-sand-200 hover:text-sand-50';
+  var FOOTER_CLS = 'inline-flex min-h-[40px] items-center text-sm text-ink-400 transition-colors duration-200 hover:text-sun-500';
+
+  function ensureLink(ul, cls, href, label, beforeLabel){
+    var exists = [...ul.querySelectorAll('a')].some(function(a){ return a.textContent.trim() === label; });
+    if (exists) return;
+    var li = document.createElement('li');
+    var a = document.createElement('a');
+    a.className = cls;
+    a.href = href;
+    a.textContent = label;
+    li.appendChild(a);
+    var beforeA = [...ul.querySelectorAll('a')].find(function(a){ return a.textContent.trim() === beforeLabel; });
+    if (beforeA && beforeA.closest('li')){
+      ul.insertBefore(li, beforeA.closest('li'));
+    } else {
+      ul.appendChild(li);
+    }
+  }
+
+  function healNav(){
+    var headerUl = document.querySelector('nav[aria-label="Primary"] ul');
+    if (headerUl){
+      ensureLink(headerUl, HEADER_CLS, 'adventures.html', 'Adventures', 'How to Book');
+      ensureLink(headerUl, HEADER_CLS, 'index.html#reviews', 'Reviews', 'Adventures');
+    }
+    var footerUl = document.querySelector('footer nav[aria-label="Footer"] ul');
+    if (footerUl){
+      ensureLink(footerUl, FOOTER_CLS, 'adventures.html', 'Adventures', 'How to Book');
+      ensureLink(footerUl, FOOTER_CLS, 'index.html#reviews', 'Reviews', 'Adventures');
+    }
+  }
+
+  healNav();
+  setTimeout(healNav, 400);
+  setTimeout(healNav, 1500);
+})();
+</script>
+</body></html>
