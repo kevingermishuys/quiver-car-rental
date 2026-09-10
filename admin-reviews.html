@@ -1,0 +1,145 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><meta name="robots" content="noindex, nofollow"/><link rel="stylesheet" href="_next/static/css/a8dc9301f26d5d79.css" data-precedence="next"/><title>Review Moderation — Quiver Car Rental</title>
+<style>
+  body{background:#181210}
+  .rev-card{border:1px solid #e7dfd3}
+  .stars{color:#d66308;letter-spacing:2px}
+</style>
+</head><body class="min-h-dvh bg-ink-950">
+<div class="container-q py-10 max-w-[64rem]">
+  <h1 class="font-display text-3xl text-sand-50 mb-2">Review Moderation</h1>
+  <p class="text-sm text-ink-400 mb-8">Not public, not linked from the site. Bookmark this page.</p>
+
+  <div id="gate" class="rounded-sm border border-ink-800 bg-ink-900 p-6 max-w-[28rem]">
+    <label class="block text-sm text-sand-200 mb-2" for="token">Admin token</label>
+    <input id="token" type="password" class="w-full rounded-sm border border-ink-700 bg-ink-950 px-4 py-3 text-sand-50" placeholder="Paste your admin token"/>
+    <button id="enter" class="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-sm bg-sun-600 px-6 text-sm font-semibold uppercase tracking-[0.1em] text-white hover:bg-sun-700">Enter</button>
+    <p id="gate-error" class="mt-3 text-sm text-red-400" hidden>Wrong token, or a network error — try again.</p>
+  </div>
+
+  <div id="panel" hidden>
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex gap-2" id="tabs">
+        <button data-status="pending" class="tab-btn px-4 py-2 text-sm rounded-sm bg-sun-600 text-white">Pending</button>
+        <button data-status="approved" class="tab-btn px-4 py-2 text-sm rounded-sm bg-ink-900 text-sand-200">Approved</button>
+        <button data-status="rejected" class="tab-btn px-4 py-2 text-sm rounded-sm bg-ink-900 text-sand-200">Rejected</button>
+        <button data-status="all" class="tab-btn px-4 py-2 text-sm rounded-sm bg-ink-900 text-sand-200">All</button>
+      </div>
+      <button id="refresh" class="text-sm text-sand-200 underline">Refresh</button>
+    </div>
+    <div id="list" class="space-y-4"></div>
+    <p id="empty" class="text-ink-400" hidden>Nothing here.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var API_BASE = '/api/admin/reviews';
+  var token = sessionStorage.getItem('qcr_admin_token') || '';
+  var gate = document.getElementById('gate');
+  var panel = document.getElementById('panel');
+  var list = document.getElementById('list');
+  var empty = document.getElementById('empty');
+  var currentStatus = 'pending';
+  var allReviews = [];
+
+  function showPanel(){
+    gate.hidden = true;
+    panel.hidden = false;
+    load();
+  }
+
+  document.getElementById('enter').addEventListener('click', function(){
+    var val = document.getElementById('token').value.trim();
+    if (!val) return;
+    token = val;
+    sessionStorage.setItem('qcr_admin_token', token);
+    testToken();
+  });
+
+  function testToken(){
+    fetch(API_BASE + '?token=' + encodeURIComponent(token))
+      .then(function(r){
+        if (!r.ok) throw new Error('bad token');
+        return r.json();
+      })
+      .then(function(data){
+        allReviews = data.reviews || [];
+        showPanel();
+      })
+      .catch(function(){
+        document.getElementById('gate-error').hidden = false;
+        sessionStorage.removeItem('qcr_admin_token');
+      });
+  }
+
+  if (token) testToken();
+
+  document.getElementById('refresh').addEventListener('click', load);
+
+  document.getElementById('tabs').addEventListener('click', function(e){
+    var btn = e.target.closest('.tab-btn');
+    if (!btn) return;
+    currentStatus = btn.dataset.status;
+    document.querySelectorAll('.tab-btn').forEach(function(b){
+      b.className = 'tab-btn px-4 py-2 text-sm rounded-sm ' + (b === btn ? 'bg-sun-600 text-white' : 'bg-ink-900 text-sand-200');
+    });
+    render();
+  });
+
+  function load(){
+    fetch(API_BASE + '?token=' + encodeURIComponent(token))
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        allReviews = data.reviews || [];
+        render();
+      });
+  }
+
+  function render(){
+    var items = currentStatus === 'all' ? allReviews : allReviews.filter(function(r){ return r.status === currentStatus; });
+    list.innerHTML = '';
+    empty.hidden = items.length > 0;
+    items.forEach(function(r){
+      var card = document.createElement('div');
+      card.className = 'rev-card rounded-sm bg-white p-5';
+      var stars = '★★★★★☆☆☆☆☆'.slice(5 - r.rating, 10 - r.rating);
+      var tripHtml = r.trip ? '<span class="text-ink-500"> · ' + escapeHtml(r.trip) + '</span>' : '';
+      card.innerHTML =
+        '<div class="flex items-center justify-between gap-4 mb-2">' +
+          '<div><span class="font-semibold text-ink-950">' + escapeHtml(r.name) + '</span>' + tripHtml + '</div>' +
+          '<span class="stars">' + stars + '</span>' +
+        '</div>' +
+        '<p class="text-sm text-ink-700 leading-relaxed mb-3">' + escapeHtml(r.review) + '</p>' +
+        '<div class="flex items-center justify-between">' +
+          '<span class="text-xs text-ink-400">' + escapeHtml(r.created_at) + ' · ' + r.status + '</span>' +
+          '<div class="flex gap-2" data-id="' + r.id + '">' +
+            (r.status !== 'approved' ? '<button class="act px-3 py-1.5 text-xs rounded-sm bg-green-600 text-white" data-action="approve">Approve</button>' : '') +
+            (r.status !== 'rejected' ? '<button class="act px-3 py-1.5 text-xs rounded-sm bg-amber-600 text-white" data-action="reject">Reject</button>' : '') +
+            '<button class="act px-3 py-1.5 text-xs rounded-sm bg-red-700 text-white" data-action="delete">Delete</button>' +
+          '</div>' +
+        '</div>';
+      list.appendChild(card);
+    });
+  }
+
+  list.addEventListener('click', function(e){
+    var btn = e.target.closest('.act');
+    if (!btn) return;
+    var id = btn.parentElement.dataset.id;
+    var action = btn.dataset.action;
+    if (action === 'delete' && !confirm('Delete this review permanently?')) return;
+    fetch(API_BASE + '/' + id + '?token=' + encodeURIComponent(token), {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ action: action })
+    }).then(load);
+  });
+
+  function escapeHtml(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+    });
+  }
+})();
+</script>
+</body></html>
