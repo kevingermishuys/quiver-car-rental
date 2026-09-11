@@ -174,6 +174,44 @@
 })();
 </script><script>
 (function(){
+  if (!('MutationObserver' in window)) return;
+  var activeCls = 'text-sun-500';
+  function navContainerOf(a){
+    return a.closest ? a.closest('nav[aria-label="Primary"], #mobile-menu') : null;
+  }
+  function revert(a){
+    a.classList.remove(activeCls);
+    if (!a.classList.contains('text-sand-200')) a.classList.add('text-sand-200');
+    if (!a.classList.contains('hover:text-sand-50')) a.classList.add('hover:text-sand-50');
+    var span = a.querySelector('span');
+    if (span) span.remove();
+  }
+  var enforcing = false;
+  var mo = new MutationObserver(function(mutations){
+    if (enforcing) return;
+    var keep = null;
+    mutations.forEach(function(m){
+      var a = m.target;
+      if (a.nodeType === 1 && a.tagName === 'A' && a.classList.contains(activeCls) && a.getAttribute('aria-current') !== 'page' && navContainerOf(a)){
+        keep = a;
+      }
+    });
+    if (!keep) return;
+    var container = navContainerOf(keep);
+    enforcing = true;
+    container.querySelectorAll('a.' + activeCls).forEach(function(a){
+      if (a !== keep && a.getAttribute('aria-current') !== 'page') revert(a);
+    });
+    enforcing = false;
+  });
+  function attach(){
+    mo.observe(document.body, { attributes: true, attributeFilter: ['class'], subtree: true });
+  }
+  if (document.body) attach();
+  else document.addEventListener('DOMContentLoaded', attach);
+})();
+</script><script>
+(function(){
   var HEADER_CLS = 'relative block whitespace-nowrap rounded px-2.5 py-2 text-[0.74rem] font-medium uppercase tracking-[0.08em] transition-colors duration-200 text-sand-200 hover:text-sand-50';
   var FOOTER_CLS = 'inline-flex min-h-[40px] items-center text-sm text-ink-400 transition-colors duration-200 hover:text-sun-500';
 
