@@ -53,9 +53,21 @@
     if (!navLinks.length) return;
     var activeCls = 'text-sun-500';
     var inactiveCls = ['text-sand-200', 'hover:text-sand-50'];
+    function clearStaleActive(){
+      document.querySelectorAll('nav[aria-label="Primary"] a, #mobile-menu a').forEach(function(a){
+        if (navLinks.length && Array.prototype.indexOf.call(navLinks, a) !== -1) return;
+        if (a.getAttribute('aria-current') === 'page') return;
+        if (!a.classList.contains(activeCls)) return;
+        a.classList.remove(activeCls);
+        inactiveCls.forEach(function(c){ a.classList.add(c); });
+        var span = a.querySelector('span.absolute, span.rv-nav-underline');
+        if (span) span.remove();
+      });
+    }
     function setActive(on){
       navLinks.forEach(function(a){
         if (on){
+          clearStaleActive();
           inactiveCls.forEach(function(c){ a.classList.remove(c); });
           a.classList.add(activeCls);
           if (!a.querySelector('.rv-nav-underline')){
