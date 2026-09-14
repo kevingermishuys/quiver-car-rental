@@ -250,4 +250,29 @@
   setTimeout(healNav, 1500);
 })();
 </script>
+<script>
+(function(){
+  function attach(a, period){
+    if (a.__bookingRedirect) return;
+    a.__bookingRedirect = true;
+    a.addEventListener('click', function(e){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      window.location.href = 'booking.html?period=' + period;
+    }, true);
+  }
+  function wireQuoteButtons(){
+    document.querySelectorAll('a').forEach(function(a){
+      var href = a.getAttribute('href') || '';
+      var text = (a.textContent || '').trim().toLowerCase();
+      if (text !== 'request a quote') return;
+      if (href.indexOf('period=short') !== -1) attach(a, 'short');
+      else if (href.indexOf('period=monthly') !== -1) attach(a, 'monthly');
+    });
+  }
+  wireQuoteButtons();
+  setTimeout(wireQuoteButtons, 400);
+  setTimeout(wireQuoteButtons, 1500);
+})();
+</script>
 </body></html>
