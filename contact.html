@@ -38,4 +38,28 @@
   setTimeout(healNav, 1500);
 })();
 </script>
+<script>
+(function(){
+  function addFavicons(){
+    if (document.querySelector('link[rel="icon"][href="favicon.ico"]')) return;
+    var head = document.head;
+    [
+      ['icon', 'favicon.ico', 'any', null],
+      ['icon', 'favicon-32x32.png', '32x32', 'image/png'],
+      ['icon', 'favicon-16x16.png', '16x16', 'image/png'],
+      ['apple-touch-icon', 'apple-touch-icon.png', null, null]
+    ].forEach(function(cfg){
+      var l = document.createElement('link');
+      l.rel = cfg[0];
+      l.href = cfg[1];
+      if (cfg[2]) l.sizes = cfg[2];
+      if (cfg[3]) l.type = cfg[3];
+      head.appendChild(l);
+    });
+  }
+  addFavicons();
+  setTimeout(addFavicons, 400);
+  setTimeout(addFavicons, 1500);
+})();
+</script>
 </body></html>
