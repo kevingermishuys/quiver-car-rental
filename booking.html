@@ -26,6 +26,19 @@ textarea.bk-field{min-height:110px;padding-top:.75rem;}
 .bk-grid-2{display:grid;gap:1.25rem;}
 @media (min-width:640px){.bk-grid-2{grid-template-columns:1fr 1fr;}}
 .bk-callout{display:flex;gap:1rem;border-left:4px solid rgb(var(--sun-600));background:rgb(var(--sand-100));padding:1.25rem;border-radius:.125rem;font-size:.875rem;line-height:1.65;color:rgb(var(--ink-700));}
+.bk-pay-card{border:1px solid rgb(var(--sand-300));border-radius:.25rem;padding:1.5rem;background:linear-gradient(180deg,#fff,rgb(var(--sand-50)));}
+@media (min-width:640px){.bk-pay-card{padding:2rem;}}
+.bk-pay-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem;}
+.bk-pay-head-left{display:flex;align-items:center;gap:.6rem;font-family:var(--font-body),system-ui,sans-serif;font-weight:600;color:rgb(var(--ink-950));font-size:.95rem;}
+.bk-pay-badge{display:inline-flex;align-items:center;border-radius:9999px;padding:.2rem .65rem;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:rgb(var(--sun-600));color:#fff;}
+.bk-pay-amount{font-family:var(--font-display),Impact,sans-serif;font-size:1.9rem;color:rgb(var(--ink-950));margin-bottom:1.4rem;}
+.bk-pay-amount span{display:block;font-family:var(--font-body),system-ui,sans-serif;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:rgb(var(--ink-600));margin-top:.2rem;}
+.bk-pay-fields{display:grid;gap:1.1rem;}
+.bk-card-number{font-variant-numeric:tabular-nums;letter-spacing:.04em;}
+.bk-pay-btn{width:100%;position:relative;}
+.bk-pay-fineprint{margin-top:1.25rem;font-size:.72rem;line-height:1.55;color:rgb(var(--ink-600));}
+.bk-pay-spinner{display:inline-block;width:1rem;height:1rem;border-radius:9999px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;margin-right:.5rem;vertical-align:-2px;animation:bk-spin .7s linear infinite;}
+@keyframes bk-spin{to{transform:rotate(360deg);}}
 .bk-btn{display:inline-flex;min-height:52px;align-items:center;justify-content:center;gap:.6rem;border-radius:.125rem;padding:0 1.75rem;font-family:var(--font-body),system-ui,sans-serif;font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.13em;border:1px solid transparent;transition:background-color .2s ease-out,border-color .2s ease-out,color .2s ease-out;}
 .bk-btn-primary{background:rgb(var(--sun-600));color:#fff;}
 .bk-btn-primary:hover{background:rgb(var(--sun-700));}
@@ -160,33 +173,46 @@ header a[class~="bg-sun-600"]{padding-left:1rem;padding-right:1rem;padding-top:.
 </div>
 
 <div class="bk-step" data-step="4">
-<h2 class="font-display text-2xl tracking-display text-ink-950">Review &amp; deposit</h2>
-<p class="mt-2 text-sm text-ink-600">Check the details below, then submit your booking request.</p>
+<h2 class="font-display text-2xl tracking-display text-ink-950">Review &amp; pay deposit</h2>
+<p class="mt-2 text-sm text-ink-600">Check the details below, then pay your deposit to confirm instantly.</p>
 <dl class="bk-summary mt-7" id="bkSummary"></dl>
 
-<div id="depositInfo" class="bk-callout">
-<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><rect width="20" height="14" x="2" y="5" rx="2"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg>
-<span><span class="font-semibold text-ink-950">Refundable deposit: N$5,000.</span> Submitting below places a 48-hour hold on these dates. Online deposit payment isn't live on the site yet — we'll send you a secure payment link by WhatsApp or email to confirm. If we don't hear back within 48 hours, the hold is released.</span>
+<div id="depositInfo" class="bk-pay-card">
+<div class="bk-pay-head">
+<div class="bk-pay-head-left"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="14" x="2" y="5" rx="2"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg><span>Pay your deposit</span></div>
+<span class="bk-pay-badge">Preview</span>
+</div>
+<p class="bk-pay-amount">N$5,000 <span>refundable deposit</span></p>
+<div class="bk-pay-fields">
+<div><label class="bk-label" for="cardName">Name on card <span class="bk-req">*</span></label><input class="bk-field" type="text" id="cardName" autocomplete="cc-name"/><p class="bk-error" id="err-cardName" role="alert" hidden></p></div>
+<div><label class="bk-label" for="cardNumber">Card number <span class="bk-req">*</span></label><input class="bk-field bk-card-number" type="text" id="cardNumber" inputmode="numeric" autocomplete="cc-number" placeholder="0000 0000 0000 0000" maxlength="19"/><p class="bk-error" id="err-cardNumber" role="alert" hidden></p></div>
+<div class="bk-grid-2">
+<div><label class="bk-label" for="cardExpiry">Expiry <span class="bk-req">*</span></label><input class="bk-field" type="text" id="cardExpiry" inputmode="numeric" autocomplete="cc-exp" placeholder="MM/YY" maxlength="5"/><p class="bk-error" id="err-cardExpiry" role="alert" hidden></p></div>
+<div><label class="bk-label" for="cardCvv">CVV <span class="bk-req">*</span></label><input class="bk-field" type="text" id="cardCvv" inputmode="numeric" autocomplete="cc-csc" placeholder="123" maxlength="4"/><p class="bk-error" id="err-cardCvv" role="alert" hidden></p></div>
+</div>
 </div>
 
 <p class="bk-error" id="err-submit" role="alert" hidden></p>
 
-<div class="mt-6 flex flex-col gap-3 sm:flex-row" id="submitRow">
-<button type="button" id="submitBooking" class="bk-btn bk-btn-primary">Submit Booking Request</button>
+<div class="mt-6" id="submitRow">
+<button type="button" id="submitBooking" class="bk-btn bk-btn-primary bk-pay-btn"><span id="submitBookingLabel">Pay N$5,000 Deposit</span></button>
+</div>
+
+<p class="bk-pay-fineprint">Payments are processed securely by PayToday. <strong>This is a visual preview</strong> — no card details are sent, stored, or charged. Once PayToday is connected, this card entry will be replaced by their secure hosted payment fields.</p>
 </div>
 
 <div id="afterSubmit" hidden>
 <div class="bk-callout" style="border-color:rgb(22 101 52);background:rgb(220 252 231);color:rgb(22 101 52)">
 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></svg>
-<span><span class="font-semibold">Booking held — reference <span id="bookingRef"></span>.</span> Your dates are reserved until <span id="holdExpiry"></span>. Now send us the details so we can arrange your deposit and confirm.</span>
+<span><span class="font-semibold">Deposit paid (preview) — reference <span id="bookingRef"></span>.</span> Your booking is confirmed for the dates above. In preview mode no real charge was made; once PayToday is connected this step will process a real payment instantly. Hold reference valid until <span id="holdExpiry"></span>.</span>
 </div>
-<div class="mt-5 flex flex-col gap-3 sm:flex-row">
-<button type="button" id="sendWhatsapp" class="bk-btn bk-btn-primary">Send via WhatsApp</button>
+<p class="bk-hint mt-4">Want to reach us directly too? Optional — not required to confirm your booking.</p>
+<div class="mt-3 flex flex-col gap-3 sm:flex-row">
+<button type="button" id="sendWhatsapp" class="bk-btn bk-btn-outline">Send via WhatsApp</button>
 <button type="button" id="sendEmail" class="bk-btn bk-btn-outline">Send via Email</button>
 </div>
 </div>
 
-<p class="bk-hint mt-4">Submitting holds your dates provisionally — it does not charge you. We confirm the deposit and final pricing with you directly.</p>
 </div>
 
 <div class="mt-9 flex items-center justify-between border-t border-sand-300 pt-7">
@@ -440,7 +466,7 @@ function goToStep(step){
     $("depositInfo").hidden = false;
     $("err-submit").hidden = true;
     $("submitBooking").disabled = false;
-    $("submitBooking").textContent = "Submit Booking Request";
+    $("submitBookingLabel").textContent = "Pay N$5,000 Deposit";
   }
   var card = document.querySelector(".bk-card");
   if (card) card.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -532,10 +558,47 @@ function collectBookingPayload(){
   };
 }
 
+// ---- Card field formatting (cosmetic only — see fine print: nothing here is transmitted or stored) ----
+$("cardNumber").addEventListener("input", function(){
+  var digits = this.value.replace(/\D/g, "").slice(0, 19);
+  this.value = digits.replace(/(.{4})/g, "$1 ").trim();
+});
+$("cardExpiry").addEventListener("input", function(){
+  var digits = this.value.replace(/\D/g, "").slice(0, 4);
+  this.value = digits.length > 2 ? digits.slice(0, 2) + "/" + digits.slice(2) : digits;
+});
+$("cardCvv").addEventListener("input", function(){
+  this.value = this.value.replace(/\D/g, "").slice(0, 4);
+});
+
+function validateCardFields(){
+  clearErrors(4);
+  var ok = true;
+  if (!$("cardName").value.trim()) { showError("cardName", "Enter the name on the card."); ok = false; }
+  var digits = $("cardNumber").value.replace(/\s/g, "");
+  if (!/^\d{13,19}$/.test(digits)) { showError("cardNumber", "Enter a valid card number."); ok = false; }
+  var exp = $("cardExpiry").value;
+  var m = /^(\d{2})\/(\d{2})$/.exec(exp);
+  if (!m || Number(m[1]) < 1 || Number(m[1]) > 12) {
+    showError("cardExpiry", "Enter a valid expiry (MM/YY)."); ok = false;
+  } else {
+    var expDate = new Date(2000 + Number(m[2]), Number(m[1]), 1);
+    if (expDate <= new Date()) { showError("cardExpiry", "That card has expired."); ok = false; }
+  }
+  if (!/^\d{3,4}$/.test($("cardCvv").value)) { showError("cardCvv", "Enter a valid CVV."); ok = false; }
+  return ok;
+}
+
 $("submitBooking").addEventListener("click", function(){
   $("err-submit").hidden = true;
+  if (!validateCardFields()) {
+    var firstErr = document.querySelector('#depositInfo .bk-error:not([hidden])');
+    if (firstErr) firstErr.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+
   $("submitBooking").disabled = true;
-  $("submitBooking").textContent = "Submitting…";
+  $("submitBookingLabel").innerHTML = '<span class="bk-pay-spinner" aria-hidden="true"></span>Processing payment…';
 
   fetch("/api/bookings", {
     method: "POST",
@@ -571,7 +634,7 @@ $("submitBooking").addEventListener("click", function(){
       $("err-submit").textContent = err.message;
       $("err-submit").hidden = false;
       $("submitBooking").disabled = false;
-      $("submitBooking").textContent = "Submit Booking Request";
+      $("submitBookingLabel").textContent = "Pay N$5,000 Deposit";
       if (/already booked|not available/i.test(err.message)) {
         fetch("/api/bookings/availability")
           .then(function(r){ return r.ok ? r.json() : { blocked: [] }; })
