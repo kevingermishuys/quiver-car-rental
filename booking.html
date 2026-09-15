@@ -39,8 +39,23 @@ textarea.bk-field{min-height:110px;padding-top:.75rem;}
 .bk-summary dt{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:rgb(var(--ink-600));}
 .bk-summary dd{margin:0 0 1.1rem;font-size:.95rem;color:rgb(var(--ink-950));}
 .bk-summary dd:empty::after{content:"—";color:rgb(var(--ink-400));}
+.bk-cal-wrap{display:grid;gap:1.5rem}
+@media (min-width:640px){.bk-cal-wrap{grid-template-columns:1fr 1fr}}
+.bk-cal-head{margin-bottom:.5rem;font-family:var(--font-body),system-ui,sans-serif;font-weight:600;font-size:.85rem;color:rgb(var(--ink-950))}
+.bk-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:.2rem}
+.bk-cal-dow{text-align:center;font-size:.62rem;text-transform:uppercase;letter-spacing:.03em;color:rgb(var(--ink-400))}
+.bk-cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:.72rem;border-radius:.25rem;color:rgb(var(--ink-700))}
+.bk-cal-day.is-blocked{background:rgb(var(--red-50));color:rgb(var(--red-700));text-decoration:line-through}
+.bk-cal-day.is-past{opacity:.35}
+.bk-cal-legend{display:flex;flex-wrap:wrap;gap:1.25rem;margin-top:1rem;font-size:.75rem;color:rgb(var(--ink-600));align-items:center}
+.bk-cal-swatch{display:inline-block;width:.7rem;height:.7rem;border-radius:.2rem;margin-right:.4rem;vertical-align:middle}
 </style>
-<link rel="icon" href="favicon.ico" sizes="any"/><link rel="icon" href="favicon-32x32.png" sizes="32x32" type="image/png"/><link rel="icon" href="favicon-16x16.png" sizes="16x16" type="image/png"/><link rel="apple-touch-icon" href="apple-touch-icon.png"/></head><body class="min-h-dvh"><a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded focus:bg-ink-950 focus:px-5 focus:py-3 focus:text-sm focus:font-semibold focus:text-sand-50">Skip to main content</a><header class="fixed inset-x-0 top-0 z-50 bg-ink-950"><div class="container-q flex h-[72px] items-center justify-between gap-6"><a class="flex shrink-0 items-center gap-2.5" aria-label="Quiver Car Rental — home" href="index.html"><img alt="" width="44" height="34" decoding="async" class="h-[34px] w-auto" src="img/mark.png"/><span class="flex flex-col leading-none"><span class="whitespace-nowrap font-display text-[1.35rem] tracking-display text-sand-50">Quiver Car</span><span class="font-body text-[0.58rem] font-semibold uppercase tracking-[0.34em] text-sun-500">Rental</span></span></a><nav aria-label="Primary" class="hidden lg:block"><ul class="flex items-center gap-1"><li><a class="relative block whitespace-nowrap rounded px-2.5 py-2 text-[0.74rem] font-medium uppercase tracking-[0.08em] transition-colors duration-200 text-sand-200 hover:text-sand-50" href="index.html#vehicle">The Fortuner</a></li><li><a class="relative block whitespace-nowrap rounded px-2.5 py-2 text-[0.74rem] font-medium uppercase tracking-[0.08em] transition-colors duration-200 text-sand-200 hover:text-sand-50" href="index.html#rates">Rental Periods</a></li><li><a class="relative block whitespace-nowrap rounded px-2.5 py-2 text-[0.74rem] font-medium uppercase tracking-[0.08em] transition-colors duration-200 text-sand-200 hover:text-sand-50" href="index.html#delivery">Delivery</a></li><li><a class="relative block whitespace-nowrap rounded px-2.5 py-2 text-[0.74rem] font-medium uppercase tracking-[0.08em] transition-colors duration-200 text-sand-200 hover:text-sand-50" href="index.html#reviews">Reviews</a></li><li><a class="relative block whitespace-nowrap rounded px-2.5 py-2 text-[0.74rem] font-medium uppercase tracking-[0.08em] transition-colors duration-200 text-sand-200 hover:text-sand-50" href="index.html#booking">How to Book</a></li><li><a class="relative block whitespace-nowrap rounded px-2.5 py-2 text-[0.74rem] font-medium uppercase tracking-[0.08em] transition-colors duration-200 text-sand-200 hover:text-sand-50" href="index.html#faq">FAQ</a></li><li><a class="relative block whitespace-nowrap rounded px-2.5 py-2 text-[0.74rem] font-medium uppercase tracking-[0.08em] transition-colors duration-200 text-sand-200 hover:text-sand-50" href="adventures.html">Adventures</a></li><li><a class="relative block whitespace-nowrap rounded px-2.5 py-2 text-[0.74rem] font-medium uppercase tracking-[0.08em] transition-colors duration-200 text-sand-200 hover:text-sand-50" href="contact.html">Contact</a></li></ul></nav><div class="flex items-center gap-2"><a class="hidden whitespace-nowrap rounded-sm bg-sun-600 px-5 py-3 text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-white transition-colors duration-200 hover:bg-sun-700 sm:inline-block" href="booking.html" aria-current="page">Book Now</a><button type="button" id="mobile-menu-btn" aria-label="Open navigation menu" aria-expanded="false" class="grid h-12 w-12 place-items-center rounded-sm text-sand-50 transition-colors duration-200 hover:bg-white/10 lg:hidden"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"></line><line x1="4" x2="20" y1="6" y2="6"></line><line x1="4" x2="20" y1="18" y2="18"></line></svg></button></div></div><nav id="mobile-menu" hidden aria-label="Mobile" class="lg:hidden border-t border-ink-800 bg-ink-950"><ul class="container-q flex flex-col py-3">
+<link rel="icon" href="favicon.ico" sizes="any"/><link rel="icon" href="favicon-32x32.png" sizes="32x32" type="image/png"/><link rel="icon" href="favicon-16x16.png" sizes="16x16" type="image/png"/><link rel="apple-touch-icon" href="apple-touch-icon.png"/><style>
+header nav[aria-label="Primary"] ul{gap:.1rem}
+header nav[aria-label="Primary"] a{padding-left:.55rem;padding-right:.55rem;padding-top:.5rem;padding-bottom:.5rem;font-size:.66rem;letter-spacing:.03em}
+header .container-q{gap:1rem}
+header a[class~="bg-sun-600"]{padding-left:1rem;padding-right:1rem;padding-top:.6rem;padding-bottom:.6rem;font-size:.68rem}
+</style></head><body class="min-h-dvh"><a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded focus:bg-ink-950 focus:px-5 focus:py-3 focus:text-sm focus:font-semibold focus:text-sand-50">Skip to main content</a><header class="fixed inset-x-0 top-0 z-50 bg-ink-950"><div class="container-q flex h-[72px] items-center justify-between gap-6"><a class="flex shrink-0 items-center gap-2.5" aria-label="Quiver Car Rental — home" href="index.html"><img alt="" width="44" height="34" decoding="async" class="h-[34px] w-auto" src="img/mark.png"/><span class="flex flex-col leading-none"><span class="whitespace-nowrap font-display text-[1.35rem] tracking-display text-sand-50">Quiver Car</span><span class="font-body text-[0.58rem] font-semibold uppercase tracking-[0.34em] text-sun-500">Rental</span></span></a><nav aria-label="Primary" class="hidden lg:block"><ul class="flex items-center gap-1"><li><a class="relative block whitespace-nowrap rounded px-2.5 py-2 text-[0.74rem] font-medium uppercase tracking-[0.08em] transition-colors duration-200 text-sand-200 hover:text-sand-50" href="index.html#vehicle">The Fortuner</a></li><li><a class="relative block whitespace-nowrap rounded px-2.5 py-2 text-[0.74rem] font-medium uppercase tracking-[0.08em] transition-colors duration-200 text-sand-200 hover:text-sand-50" href="index.html#rates">Rental Periods</a></li><li><a class="relative block whitespace-nowrap rounded px-2.5 py-2 text-[0.74rem] font-medium uppercase tracking-[0.08em] transition-colors duration-200 text-sand-200 hover:text-sand-50" href="index.html#delivery">Delivery</a></li><li><a class="relative block whitespace-nowrap rounded px-2.5 py-2 text-[0.74rem] font-medium uppercase tracking-[0.08em] transition-colors duration-200 text-sand-200 hover:text-sand-50" href="index.html#reviews">Reviews</a></li><li><a class="relative block whitespace-nowrap rounded px-2.5 py-2 text-[0.74rem] font-medium uppercase tracking-[0.08em] transition-colors duration-200 text-sand-200 hover:text-sand-50" href="index.html#booking">How to Book</a></li><li><a class="relative block whitespace-nowrap rounded px-2.5 py-2 text-[0.74rem] font-medium uppercase tracking-[0.08em] transition-colors duration-200 text-sand-200 hover:text-sand-50" href="index.html#faq">FAQ</a></li><li><a class="relative block whitespace-nowrap rounded px-2.5 py-2 text-[0.74rem] font-medium uppercase tracking-[0.08em] transition-colors duration-200 text-sand-200 hover:text-sand-50" href="adventures.html">Adventures</a></li><li><a class="relative block whitespace-nowrap rounded px-2.5 py-2 text-[0.74rem] font-medium uppercase tracking-[0.08em] transition-colors duration-200 text-sand-200 hover:text-sand-50" href="contact.html">Contact</a></li></ul></nav><div class="flex items-center gap-2"><a class="hidden whitespace-nowrap rounded-sm bg-sun-600 px-5 py-3 text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-white transition-colors duration-200 hover:bg-sun-700 sm:inline-block" href="booking.html" aria-current="page">Book Now</a><button type="button" id="mobile-menu-btn" aria-label="Open navigation menu" aria-expanded="false" class="grid h-12 w-12 place-items-center rounded-sm text-sand-50 transition-colors duration-200 hover:bg-white/10 lg:hidden"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"></line><line x1="4" x2="20" y1="6" y2="6"></line><line x1="4" x2="20" y1="18" y2="18"></line></svg></button></div></div><nav id="mobile-menu" hidden aria-label="Mobile" class="lg:hidden border-t border-ink-800 bg-ink-950"><ul class="container-q flex flex-col py-3">
 <li><a class="block py-3 text-sm uppercase tracking-[0.08em] text-sand-200 hover:text-sand-50" href="index.html#vehicle">The Fortuner</a></li>
 <li><a class="block py-3 text-sm uppercase tracking-[0.08em] text-sand-200 hover:text-sand-50" href="index.html#rates">Rental Periods</a></li>
 <li><a class="block py-3 text-sm uppercase tracking-[0.08em] text-sand-200 hover:text-sand-50" href="index.html#delivery">Delivery</a></li>
@@ -73,6 +88,16 @@ textarea.bk-field{min-height:110px;padding-top:.75rem;}
 <label class="bk-period-option" data-period-option="monthly"><input type="radio" name="period" value="monthly" required/><span><span class="block text-sm font-semibold text-ink-950">Monthly Rental</span><span class="block text-xs text-ink-600">By the month</span></span></label>
 </div>
 <p class="bk-error" id="err-period" role="alert" hidden></p>
+</div>
+
+<div class="mt-7">
+<span class="bk-label">Check availability</span>
+<div id="availabilityCalendar"></div>
+<p class="bk-hint" id="availabilityHint">Loading availability…</p>
+<div class="bk-cal-legend">
+<span><span class="bk-cal-swatch" style="background:rgb(254 242 242)"></span>Already booked</span>
+<span><span class="bk-cal-swatch" style="background:#fff;border:1px solid rgb(223 203 174)"></span>Available</span>
+</div>
 </div>
 
 <div class="bk-grid-2 mt-7">
@@ -191,17 +216,74 @@ var currentStep = 1;
 var blockedRanges = [];
 var lastBooking = null;
 
-fetch("/api/bookings/availability")
-  .then(function(r){ return r.ok ? r.json() : { blocked: [] }; })
-  .then(function(data){ blockedRanges = data.blocked || []; })
-  .catch(function(){ blockedRanges = []; });
-
 function rangesOverlap(aStart, aEnd, bStart, bEnd){
   return aStart <= bEnd && aEnd >= bStart;
 }
 function hasConflict(start, end){
   return blockedRanges.some(function(r){ return rangesOverlap(start, end, r.start, r.end); });
 }
+
+function renderAvailabilityCalendar(){
+  var container = document.getElementById("availabilityCalendar");
+  if (!container) return;
+  container.innerHTML = "";
+  container.className = "bk-cal-wrap";
+
+  var today = new Date();
+  var monthStarts = [0, 1].map(function(offset){
+    return new Date(today.getFullYear(), today.getMonth() + offset, 1);
+  });
+  var monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  var dowLabels = ["S","M","T","W","T","F","S"];
+  var todayISOStr = todayISO();
+
+  monthStarts.forEach(function(monthStart){
+    var monthEl = document.createElement("div");
+    var head = document.createElement("div");
+    head.className = "bk-cal-head";
+    head.textContent = monthNames[monthStart.getMonth()] + " " + monthStart.getFullYear();
+    monthEl.appendChild(head);
+
+    var grid = document.createElement("div");
+    grid.className = "bk-cal-grid";
+    dowLabels.forEach(function(d){
+      var el = document.createElement("div");
+      el.className = "bk-cal-dow";
+      el.textContent = d;
+      grid.appendChild(el);
+    });
+
+    var firstDow = monthStart.getDay();
+    for (var i = 0; i < firstDow; i++) grid.appendChild(document.createElement("div"));
+
+    var daysInMonth = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0).getDate();
+    for (var day = 1; day <= daysInMonth; day++) {
+      var d = new Date(monthStart.getFullYear(), monthStart.getMonth(), day);
+      var iso = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+      var cell = document.createElement("div");
+      cell.className = "bk-cal-day";
+      cell.textContent = String(day);
+      if (iso < todayISOStr) cell.classList.add("is-past");
+      else if (hasConflict(iso, iso)) cell.classList.add("is-blocked");
+      grid.appendChild(cell);
+    }
+    monthEl.appendChild(grid);
+    container.appendChild(monthEl);
+  });
+}
+
+fetch("/api/bookings/availability")
+  .then(function(r){ return r.ok ? r.json() : { blocked: [] }; })
+  .then(function(data){
+    blockedRanges = data.blocked || [];
+    renderAvailabilityCalendar();
+    $("availabilityHint").textContent = "Dates in red are already booked or on hold. This updates live as requests come in.";
+  })
+  .catch(function(){
+    blockedRanges = [];
+    renderAvailabilityCalendar();
+    $("availabilityHint").textContent = "Could not load live availability right now — dates are still checked when you submit.";
+  });
 
 var $ = function(id){ return document.getElementById(id); };
 

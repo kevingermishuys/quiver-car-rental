@@ -62,4 +62,22 @@
   setTimeout(addFavicons, 1500);
 })();
 </script>
+<script>
+(function(){
+  function addCompactNavStyle(){
+    if (document.getElementById('compact-nav-style')) return;
+    var style = document.createElement('style');
+    style.id = 'compact-nav-style';
+    style.textContent =
+      'header nav[aria-label="Primary"] ul{gap:.1rem}' +
+      'header nav[aria-label="Primary"] a{padding-left:.55rem;padding-right:.55rem;padding-top:.5rem;padding-bottom:.5rem;font-size:.66rem;letter-spacing:.03em}' +
+      'header .container-q{gap:1rem}' +
+      'header a[class~="bg-sun-600"]{padding-left:1rem;padding-right:1rem;padding-top:.6rem;padding-bottom:.6rem;font-size:.68rem}';
+    document.head.appendChild(style);
+  }
+  addCompactNavStyle();
+  setTimeout(addCompactNavStyle, 400);
+  setTimeout(addCompactNavStyle, 1500);
+})();
+</script>
 </body></html>
