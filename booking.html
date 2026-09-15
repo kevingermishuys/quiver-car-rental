@@ -135,14 +135,33 @@ textarea.bk-field{min-height:110px;padding-top:.75rem;}
 </div>
 
 <div class="bk-step" data-step="4">
-<h2 class="font-display text-2xl tracking-display text-ink-950">Review &amp; send</h2>
-<p class="mt-2 text-sm text-ink-600">Check the details below, then send your request by WhatsApp or email.</p>
+<h2 class="font-display text-2xl tracking-display text-ink-950">Review &amp; deposit</h2>
+<p class="mt-2 text-sm text-ink-600">Check the details below, then submit your booking request.</p>
 <dl class="bk-summary mt-7" id="bkSummary"></dl>
-<div class="mt-2 flex flex-col gap-3 sm:flex-row">
+
+<div id="depositInfo" class="bk-callout">
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><rect width="20" height="14" x="2" y="5" rx="2"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg>
+<span><span class="font-semibold text-ink-950">Refundable deposit: N$5,000.</span> Submitting below places a 48-hour hold on these dates. Online deposit payment isn't live on the site yet — we'll send you a secure payment link by WhatsApp or email to confirm. If we don't hear back within 48 hours, the hold is released.</span>
+</div>
+
+<p class="bk-error" id="err-submit" role="alert" hidden></p>
+
+<div class="mt-6 flex flex-col gap-3 sm:flex-row" id="submitRow">
+<button type="button" id="submitBooking" class="bk-btn bk-btn-primary">Submit Booking Request</button>
+</div>
+
+<div id="afterSubmit" hidden>
+<div class="bk-callout" style="border-color:rgb(22 101 52);background:rgb(220 252 231);color:rgb(22 101 52)">
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></svg>
+<span><span class="font-semibold">Booking held — reference <span id="bookingRef"></span>.</span> Your dates are reserved until <span id="holdExpiry"></span>. Now send us the details so we can arrange your deposit and confirm.</span>
+</div>
+<div class="mt-5 flex flex-col gap-3 sm:flex-row">
 <button type="button" id="sendWhatsapp" class="bk-btn bk-btn-primary">Send via WhatsApp</button>
 <button type="button" id="sendEmail" class="bk-btn bk-btn-outline">Send via Email</button>
 </div>
-<p class="bk-hint mt-4">This sends your details to Quiver Car Rental — it does not charge you or reserve the vehicle automatically. We will confirm availability and pricing before anything is agreed.</p>
+</div>
+
+<p class="bk-hint mt-4">Submitting holds your dates provisionally — it does not charge you. We confirm the deposit and final pricing with you directly.</p>
 </div>
 
 <div class="mt-9 flex items-center justify-between border-t border-sand-300 pt-7">
@@ -162,9 +181,27 @@ var WHATSAPP_NUMBER = "264818089213";
 var EMAIL_ADDRESS = "quivercar@gmail.com";
 var PERIODS = { short: { name: "Short Rental", duration: "Minimum 3 days" }, monthly: { name: "Monthly Rental", duration: "By the month" } };
 var LOCATIONS = ["Swakopmund","Hosea Kutako International Airport (Windhoek)","Walvis Bay International Airport"];
+// Set this once a hosted-checkout deposit link (PayToday / PayGate / Ozow, etc.) is ready.
+// When set, a confirmed booking redirects here instead of falling back to WhatsApp/email.
+// Expected shape: a base URL that accepts amount/reference/return_url query params.
+var PAYMENT_PROVIDER_URL = null;
 
 var totalSteps = 4;
 var currentStep = 1;
+var blockedRanges = [];
+var lastBooking = null;
+
+fetch("/api/bookings/availability")
+  .then(function(r){ return r.ok ? r.json() : { blocked: [] }; })
+  .then(function(data){ blockedRanges = data.blocked || []; })
+  .catch(function(){ blockedRanges = []; });
+
+function rangesOverlap(aStart, aEnd, bStart, bEnd){
+  return aStart <= bEnd && aEnd >= bStart;
+}
+function hasConflict(start, end){
+  return blockedRanges.some(function(r){ return rangesOverlap(start, end, r.start, r.end); });
+}
 
 var $ = function(id){ return document.getElementById(id); };
 
@@ -225,6 +262,10 @@ function validateStep(step){
         ok = false;
       }
     }
+    if (ok && hasConflict($("pickupDate").value, $("returnDate").value)) {
+      showError("returnDate", "Those dates are already booked. Please choose different dates.");
+      ok = false;
+    }
   } else if (step === 2) {
     if (!$("fullName").value.trim()) { showError("fullName", "Tell us your name."); ok = false; }
     if (!$("numAdults").value || parseInt($("numAdults").value, 10) < 1) { showError("numAdults", "At least one adult is required."); ok = false; }
@@ -253,7 +294,16 @@ function goToStep(step){
   });
   $("bkBack").disabled = step === 1;
   $("bkNext").hidden = step === totalSteps;
-  if (step === totalSteps) renderSummary();
+  if (step === totalSteps) {
+    renderSummary();
+    lastBooking = null;
+    $("submitRow").hidden = false;
+    $("afterSubmit").hidden = true;
+    $("depositInfo").hidden = false;
+    $("err-submit").hidden = true;
+    $("submitBooking").disabled = false;
+    $("submitBooking").textContent = "Submit Booking Request";
+  }
   var card = document.querySelector(".bk-card");
   if (card) card.scrollIntoView({ behavior: "smooth", block: "start" });
 }
@@ -303,7 +353,8 @@ function renderSummary(){
 
 function buildMessage(){
   var lines = [
-    "Hi Quiver Car Rental, I would like to request a booking for the Fortuner.",
+    "Hi Quiver Car Rental, I would like to confirm my booking request for the Fortuner.",
+    lastBooking ? "Reference: " + lastBooking.reference + " (dates held until " + lastBooking.holdExpiresAt + ")" : "",
     "",
     "Rental period: " + periodLabel(),
     "Pickup: " + [$("pickupDate").value, $("pickupTime").value].filter(Boolean).join(" ") + " — " + $("pickupLocation").value,
@@ -317,15 +368,83 @@ function buildMessage(){
   if ($("idNumber").value.trim()) lines.push("ID/Passport number: " + $("idNumber").value.trim());
   if ($("licenceNumber").value.trim()) lines.push("Driver's licence number: " + $("licenceNumber").value.trim());
   if ($("notes").value.trim()) lines.push("Notes: " + $("notes").value.trim());
-  return lines.join("\n");
+  return lines.filter(function(l){ return l !== ""; }).join("\n");
 }
+
+function collectBookingPayload(){
+  var period = document.querySelector('input[name="period"]:checked');
+  return {
+    period: period ? period.value : "",
+    pickupDate: $("pickupDate").value,
+    pickupTime: $("pickupTime").value,
+    returnDate: $("returnDate").value,
+    returnTime: $("returnTime").value,
+    pickupLocation: $("pickupLocation").value,
+    returnLocation: $("returnLocation").value,
+    adults: parseInt($("numAdults").value, 10),
+    children: parseInt($("numChildren").value || "0", 10),
+    name: $("fullName").value.trim(),
+    email: $("email").value.trim(),
+    phone: $("phone").value.trim(),
+    country: $("country").value,
+    idNumber: $("idNumber").value.trim(),
+    licenceNumber: $("licenceNumber").value.trim(),
+    notes: $("notes").value.trim()
+  };
+}
+
+$("submitBooking").addEventListener("click", function(){
+  $("err-submit").hidden = true;
+  $("submitBooking").disabled = true;
+  $("submitBooking").textContent = "Submitting…";
+
+  fetch("/api/bookings", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(collectBookingPayload())
+  })
+    .then(function(r){ return r.json().then(function(data){ return { ok: r.ok, data: data }; }); })
+    .then(function(result){
+      if (!result.ok) {
+        throw new Error(result.data && result.data.error ? result.data.error : "Something went wrong. Please try again.");
+      }
+      lastBooking = { reference: result.data.reference, holdExpiresAt: result.data.holdExpiresAt };
+
+      if (PAYMENT_PROVIDER_URL) {
+        var payUrl = PAYMENT_PROVIDER_URL
+          + "?amount=" + encodeURIComponent(result.data.depositAmount)
+          + "&reference=" + encodeURIComponent(result.data.reference)
+          + "&return_url=" + encodeURIComponent(window.location.href);
+        window.location.href = payUrl;
+        return;
+      }
+
+      $("bookingRef").textContent = lastBooking.reference;
+      $("holdExpiry").textContent = lastBooking.holdExpiresAt;
+      $("submitRow").hidden = true;
+      $("depositInfo").hidden = true;
+      $("afterSubmit").hidden = false;
+    })
+    .catch(function(err){
+      $("err-submit").textContent = err.message;
+      $("err-submit").hidden = false;
+      $("submitBooking").disabled = false;
+      $("submitBooking").textContent = "Submit Booking Request";
+      if (/already booked|not available/i.test(err.message)) {
+        fetch("/api/bookings/availability")
+          .then(function(r){ return r.ok ? r.json() : { blocked: [] }; })
+          .then(function(data){ blockedRanges = data.blocked || []; })
+          .catch(function(){});
+      }
+    });
+});
 
 $("sendWhatsapp").addEventListener("click", function(){
   var url = "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(buildMessage());
   window.open(url, "_blank", "noopener,noreferrer");
 });
 $("sendEmail").addEventListener("click", function(){
-  var subject = "Fortuner booking request — " + ($("fullName").value || "");
+  var subject = "Fortuner booking request — " + ($("fullName").value || "") + (lastBooking ? " (" + lastBooking.reference + ")" : "");
   var url = "mailto:" + EMAIL_ADDRESS + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(buildMessage());
   window.location.href = url;
 });
