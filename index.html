@@ -309,7 +309,8 @@
       'header nav[aria-label="Primary"] ul{gap:.1rem}' +
       'header nav[aria-label="Primary"] a{padding-left:.55rem;padding-right:.55rem;padding-top:.5rem;padding-bottom:.5rem;font-size:.66rem;letter-spacing:.03em}' +
       'header .container-q{gap:1rem}' +
-      'header a[class~="bg-sun-600"]{padding-left:1rem;padding-right:1rem;padding-top:.6rem;padding-bottom:.6rem;font-size:.68rem}';
+      'header a[class~="bg-sun-600"]{padding-left:1rem;padding-right:1rem;padding-top:.6rem;padding-bottom:.6rem;font-size:.68rem}' +
+      'header:has([role="dialog"][aria-modal="true"]){backdrop-filter:none!important;-webkit-backdrop-filter:none!important}';
     document.head.appendChild(style);
   }
   addCompactNavStyle();
