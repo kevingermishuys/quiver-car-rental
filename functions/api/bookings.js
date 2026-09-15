@@ -46,7 +46,9 @@ export async function onRequestPost({ request, env }) {
     return json({ ok: true, id: 0, holdExpiresAt: null });
   }
 
-  const period = body.period === "short" || body.period === "monthly" ? body.period : null;
+  const period = "daily";
+  const rate = Number.isFinite(Number(body.rate)) && Number(body.rate) > 0 ? Number(body.rate) : null;
+  const estimatedTotal = Number.isFinite(Number(body.estimatedTotal)) && Number(body.estimatedTotal) > 0 ? Number(body.estimatedTotal) : null;
   const pickupDate = body.pickupDate;
   const returnDate = body.returnDate;
   const pickupTime = String(body.pickupTime || "").trim().slice(0, 10);
@@ -64,7 +66,6 @@ export async function onRequestPost({ request, env }) {
   const notes = String(body.notes || "").trim().slice(0, 2000) || null;
 
   const errors = {};
-  if (!period) errors.period = "Choose a rental period.";
   if (!isValidDate(pickupDate)) errors.pickupDate = "A valid pickup date is required.";
   if (!isValidDate(returnDate)) errors.returnDate = "A valid return date is required.";
   if (!pickupTime) errors.pickupTime = "A pickup time is required.";
@@ -79,10 +80,10 @@ export async function onRequestPost({ request, env }) {
   if (isValidDate(pickupDate) && isValidDate(returnDate)) {
     if (returnDate < pickupDate) {
       errors.returnDate = "The return date must be on or after the pickup date.";
-    } else if (period === "short") {
+    } else {
       const days = Math.round((Date.parse(returnDate) - Date.parse(pickupDate)) / 86400000) + 1;
       if (days < 3) {
-        errors.returnDate = "A short rental requires a minimum of 3 days.";
+        errors.returnDate = "A rental requires a minimum of 3 days.";
       }
     }
   }
@@ -101,14 +102,16 @@ export async function onRequestPost({ request, env }) {
 
   const result = await env.REVIEWS_DB.prepare(
     `INSERT INTO bookings
-      (status, period, pickup_date, pickup_time, return_date, return_time, pickup_location, return_location,
+      (status, period, rate, estimated_total, pickup_date, pickup_time, return_date, return_time, pickup_location, return_location,
        adults, children, name, email, phone, country, id_number, licence_number, notes,
        deposit_amount, deposit_status, hold_expires_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unpaid', datetime('now', ?))`
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unpaid', datetime('now', ?))`
   )
     .bind(
       "held",
       period,
+      rate,
+      estimatedTotal,
       pickupDate,
       pickupTime,
       returnDate,

@@ -117,7 +117,7 @@
       var eff = effectiveStatus(b);
       var card = document.createElement('div');
       card.className = 'bkg-card rounded-sm bg-white p-5';
-      var periodLabel = b.period === 'short' ? 'Short Rental' : 'Monthly Rental';
+      var priceLabel = b.estimated_total ? 'N$' + b.estimated_total + (b.rate ? ' (N$' + b.rate + '/day)' : '') : '—';
       var passengers = b.adults + ' adult(s)' + (b.children > 0 ? ', ' + b.children + ' child(ren)' : '');
       var holdInfo = b.status === 'held' ? '<p class="text-xs text-ink-500 mt-1">Hold expires: ' + escapeHtml(b.hold_expires_at || '') + '</p>' : '';
       var optional = [
@@ -140,7 +140,7 @@
             '<p class="text-xs text-ink-500 mt-1">Ref QCR-' + String(b.id).padStart(4, '0') + ' · ' + escapeHtml(b.created_at) + '</p>' +
           '</div>' +
           '<div class="text-right text-sm text-ink-700">' +
-            '<div>' + escapeHtml(periodLabel) + '</div>' +
+            '<div>' + escapeHtml(priceLabel) + '</div>' +
             '<div>N$' + b.deposit_amount + ' deposit</div>' +
           '</div>' +
         '</div>' +

@@ -22,7 +22,7 @@ export async function onRequestGet({ request, env }) {
     return json({ error: "Unauthorized" }, 401);
   }
   const { results } = await env.REVIEWS_DB.prepare(
-    `SELECT id, status, period, pickup_date, pickup_time, return_date, return_time,
+    `SELECT id, status, period, rate, estimated_total, pickup_date, pickup_time, return_date, return_time,
             pickup_location, return_location, adults, children, name, email, phone,
             country, id_number, licence_number, notes, deposit_amount, deposit_status,
             hold_expires_at, created_at
