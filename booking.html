@@ -237,6 +237,7 @@ var LOCATION_RATES = {
   "Walvis Bay International Airport": 1900,
   "Hosea Kutako International Airport (Windhoek)": 2050
 };
+var DEPOSIT_AMOUNT = 5000;
 // Set this once a hosted-checkout deposit link (PayToday / PayGate / Ozow, etc.) is ready.
 // When set, a confirmed booking redirects here instead of falling back to WhatsApp/email.
 // Expected shape: a base URL that accepts amount/reference/return_url query params.
@@ -368,8 +369,9 @@ function updatePriceEstimate(){
   if (!p) { el.hidden = true; return; }
   var wasHidden = el.hidden;
   $("priceEstimateText").innerHTML =
-    '<span class="font-semibold text-ink-950">Estimated total: N$' + p.total.toLocaleString() + '</span> — ' +
-    p.days + ' day' + (p.days === 1 ? '' : 's') + ' × N$' + p.rate.toLocaleString() + '/day, picking up in ' + p.location + '.';
+    '<span class="font-semibold text-ink-950">Estimated rental total: N$' + p.total.toLocaleString() + '</span> — ' +
+    p.days + ' day' + (p.days === 1 ? '' : 's') + ' × N$' + p.rate.toLocaleString() + '/day, picking up in ' + p.location + '.' +
+    '<br/><span class="font-semibold text-ink-950">Deposit: N$' + DEPOSIT_AMOUNT.toLocaleString() + ' (refundable)</span> — paid now to confirm your booking.';
   el.hidden = false;
   if (window.gsap) {
     if (wasHidden) {
@@ -495,7 +497,8 @@ function renderSummary(){
   var rows = [
     ["Pickup", [$("pickupDate").value, $("pickupTime").value].filter(Boolean).join(" ") + " — " + $("pickupLocation").value],
     ["Return", [$("returnDate").value, $("returnTime").value].filter(Boolean).join(" ") + " — " + $("returnLocation").value],
-    ["Estimated price", priceSummaryText()],
+    ["Estimated rental total", priceSummaryText()],
+    ["Deposit", "N$" + DEPOSIT_AMOUNT.toLocaleString() + " (refundable)"],
     ["Passengers", $("numAdults").value + " adult(s)" + (parseInt($("numChildren").value || "0", 10) > 0 ? ", " + $("numChildren").value + " child(ren)" : "")],
     ["Name", $("fullName").value],
     ["Email", $("email").value],
@@ -521,7 +524,8 @@ function buildMessage(){
     "",
     "Pickup: " + [$("pickupDate").value, $("pickupTime").value].filter(Boolean).join(" ") + " — " + $("pickupLocation").value,
     "Return: " + [$("returnDate").value, $("returnTime").value].filter(Boolean).join(" ") + " — " + $("returnLocation").value,
-    priceSummaryText() ? "Estimated price: " + priceSummaryText() : "",
+    priceSummaryText() ? "Estimated rental total: " + priceSummaryText() : "",
+    "Deposit: N$" + DEPOSIT_AMOUNT.toLocaleString() + " (refundable)",
     "Passengers: " + $("numAdults").value + " adult(s)" + (parseInt($("numChildren").value || "0", 10) > 0 ? ", " + $("numChildren").value + " child(ren)" : ""),
     "Name: " + $("fullName").value,
     "Email: " + $("email").value,
