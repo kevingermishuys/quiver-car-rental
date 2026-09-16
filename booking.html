@@ -150,8 +150,8 @@ header a[class~="bg-sun-600"]{padding-left:1rem;padding-right:1rem;padding-top:.
 <div><label class="bk-label" for="licenceNumber">Driver's licence number <span class="text-ink-400" style="text-transform:none;letter-spacing:normal;font-weight:400;">(optional)</span></label><input class="bk-field" type="text" id="licenceNumber"/></div>
 </div>
 <div class="bk-grid-2 mt-5">
-<div><label class="bk-label" for="idDocument">Photo of ID or passport <span class="text-ink-400" style="text-transform:none;letter-spacing:normal;font-weight:400;">(optional)</span></label><input class="bk-field" type="file" id="idDocument" accept="image/*,.pdf"/><p class="bk-hint" id="idDocumentHint">A clear photo or scan — attached to your booking confirmation.</p></div>
-<div><label class="bk-label" for="licenceDocument">Photo of driver's licence <span class="text-ink-400" style="text-transform:none;letter-spacing:normal;font-weight:400;">(optional)</span></label><input class="bk-field" type="file" id="licenceDocument" accept="image/*,.pdf"/><p class="bk-hint" id="licenceDocumentHint">A clear photo or scan — attached to your booking confirmation.</p></div>
+<div><label class="bk-label" for="idDocument">Photo of ID or passport <span class="bk-req">*</span></label><input class="bk-field" type="file" id="idDocument" accept="image/*,.pdf" required/><p class="bk-hint" id="idDocumentHint">A clear photo or scan — attached to your booking confirmation.</p><p class="bk-error" id="err-idDocument" role="alert" hidden></p></div>
+<div><label class="bk-label" for="licenceDocument">Photo of driver's licence <span class="bk-req">*</span></label><input class="bk-field" type="file" id="licenceDocument" accept="image/*,.pdf" required/><p class="bk-hint" id="licenceDocumentHint">A clear photo or scan — attached to your booking confirmation.</p><p class="bk-error" id="err-licenceDocument" role="alert" hidden></p></div>
 </div>
 </div>
 
@@ -198,7 +198,7 @@ header a[class~="bg-sun-600"]{padding-left:1rem;padding-right:1rem;padding-top:.
 <button type="button" id="submitBooking" class="bk-btn bk-btn-primary bk-pay-btn"><span id="submitBookingLabel">Pay N$0</span></button>
 </div>
 
-<p class="bk-pay-fineprint">Payments are processed securely by PayToday. <strong>This is a visual preview</strong> — no card details are sent, stored, or charged. Once PayToday is connected, this card entry will be replaced by their secure hosted payment fields. Your N$5,000 deposit is refundable — returned in full after your rental if there is no damage to the vehicle. Any ID or licence photo you attached will be included with the confirmation email sent to us once payment is live — in this preview it stays on your device and is not uploaded anywhere.</p>
+<p class="bk-pay-fineprint">Payments are processed securely by PayToday. <strong>This is a visual preview</strong> — no card details are sent, stored, or charged. Once PayToday is connected, this card entry will be replaced by their secure hosted payment fields. Your N$5,000 deposit is refundable — returned in full after your rental if there is no damage to the vehicle. Your ID/passport and driver's licence photos will be included with the confirmation email sent to us once payment is live — in this preview they stay on your device and are not uploaded anywhere.</p>
 </div>
 
 <div id="afterSubmit" hidden>
@@ -401,6 +401,8 @@ function validateStep(step){
   } else if (step === 2) {
     if (!$("fullName").value.trim()) { showError("fullName", "Tell us your name."); ok = false; }
     if (!$("numAdults").value || parseInt($("numAdults").value, 10) < 1) { showError("numAdults", "At least one adult is required."); ok = false; }
+    if (!$("idDocument").files[0]) { showError("idDocument", "A photo of your ID or passport is required."); ok = false; }
+    if (!$("licenceDocument").files[0]) { showError("licenceDocument", "A photo of your driver's licence is required."); ok = false; }
   } else if (step === 3) {
     var email = $("email").value.trim();
     if (!email) { showError("email", "An email address is required."); ok = false; }
