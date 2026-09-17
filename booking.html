@@ -33,6 +33,10 @@ textarea.bk-field{min-height:110px;padding-top:.75rem;}
 .bk-pay-badge{display:inline-flex;align-items:center;border-radius:9999px;padding:.2rem .65rem;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:rgb(var(--sun-600));color:#fff;}
 .bk-pay-amount{font-family:var(--font-display),Impact,sans-serif;font-size:1.9rem;color:rgb(var(--ink-950));margin-bottom:1.4rem;}
 .bk-pay-amount span{display:block;font-family:var(--font-body),system-ui,sans-serif;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:rgb(var(--ink-600));margin-top:.2rem;}
+.bk-pay-breakdown{margin-bottom:1.4rem;}
+.bk-pay-row{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;padding:.5rem 0;font-size:.85rem;color:rgb(var(--ink-700));border-bottom:1px solid rgb(var(--sand-100));}
+.bk-pay-row-total{border-bottom:none;margin-top:.3rem;padding-top:.8rem;font-family:var(--font-display),Impact,sans-serif;font-size:1.7rem;color:rgb(var(--ink-950));}
+.bk-pay-row-total span:first-child{font-family:var(--font-body),system-ui,sans-serif;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:rgb(var(--ink-600));}
 .bk-pay-fields{display:grid;gap:1.1rem;}
 .bk-card-number{font-variant-numeric:tabular-nums;letter-spacing:.04em;}
 .bk-pay-btn{width:100%;position:relative;}
@@ -183,7 +187,11 @@ header a[class~="bg-sun-600"]{padding-left:1rem;padding-right:1rem;padding-top:.
 <div class="bk-pay-head-left"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="14" x="2" y="5" rx="2"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg><span>Pay for your booking</span></div>
 <span class="bk-pay-badge">Preview</span>
 </div>
-<p class="bk-pay-amount" id="payAmount">N$0 <span id="payAmountNote">total</span></p>
+<div class="bk-pay-breakdown" id="payBreakdown">
+<div class="bk-pay-row"><span id="payDaysLabel">Rental</span><span id="payRentalAmount">N$0</span></div>
+<div class="bk-pay-row"><span>Refundable deposit</span><span id="payDepositAmount">N$0</span></div>
+<div class="bk-pay-row bk-pay-row-total"><span>Total due now</span><span id="payTotalAmount">N$0</span></div>
+</div>
 <div class="bk-pay-fields">
 <div><label class="bk-label" for="cardName">Name on card <span class="bk-req">*</span></label><input class="bk-field" type="text" id="cardName" autocomplete="cc-name"/><p class="bk-error" id="err-cardName" role="alert" hidden></p></div>
 <div><label class="bk-label" for="cardNumber">Card number <span class="bk-req">*</span></label><input class="bk-field bk-card-number" type="text" id="cardNumber" inputmode="numeric" autocomplete="cc-number" placeholder="0000 0000 0000 0000" maxlength="19"/><p class="bk-error" id="err-cardNumber" role="alert" hidden></p></div>
@@ -476,15 +484,19 @@ function priceSummaryText(){
 function totalDueText(){
   var p = computePrice();
   if (!p) return "";
-  return "N$" + p.total.toLocaleString() + " — includes a N$" + DEPOSIT_AMOUNT.toLocaleString() + " refundable deposit";
+  var grandTotal = p.total + DEPOSIT_AMOUNT;
+  return "N$" + grandTotal.toLocaleString() + " (N$" + p.total.toLocaleString() + " rental + N$" + DEPOSIT_AMOUNT.toLocaleString() + " refundable deposit)";
 }
 
 function updatePaymentAmount(){
   var p = computePrice();
-  var total = p ? p.total : 0;
-  $("payAmount").firstChild.textContent = "N$" + total.toLocaleString() + " ";
-  $("payAmountNote").textContent = "total — includes a N$" + DEPOSIT_AMOUNT.toLocaleString() + " refundable deposit";
-  $("submitBookingLabel").textContent = "Pay N$" + total.toLocaleString();
+  var rental = p ? p.total : 0;
+  var grandTotal = rental + DEPOSIT_AMOUNT;
+  $("payDaysLabel").textContent = p ? "Rental (" + p.days + " days × N$" + p.rate.toLocaleString() + "/day)" : "Rental";
+  $("payRentalAmount").textContent = "N$" + rental.toLocaleString();
+  $("payDepositAmount").textContent = "N$" + DEPOSIT_AMOUNT.toLocaleString();
+  $("payTotalAmount").textContent = "N$" + grandTotal.toLocaleString();
+  $("submitBookingLabel").textContent = "Pay N$" + grandTotal.toLocaleString();
 }
 
 function renderSummary(){
@@ -540,6 +552,8 @@ function collectBookingPayload(){
     period: "daily",
     rate: price ? price.rate : null,
     estimatedTotal: price ? price.total : null,
+    depositAmount: DEPOSIT_AMOUNT,
+    amountDue: price ? price.total + DEPOSIT_AMOUNT : null,
     pickupDate: $("pickupDate").value,
     pickupTime: $("pickupTime").value,
     returnDate: $("returnDate").value,
