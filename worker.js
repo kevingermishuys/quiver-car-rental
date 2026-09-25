@@ -209,12 +209,14 @@ async function storeBooking(booking, env) {
       return;
     }
 
-    const response = await fetch(`${env.SUPABASE_URL}/rest/v1/bookings`, {
+    const url = new URL(`${env.SUPABASE_URL}/rest/v1/bookings`);
+    url.searchParams.set('apikey', env.SUPABASE_SERVICE_KEY);
+
+    const response = await fetch(url.toString(), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}`,
-        'apikey': env.SUPABASE_SERVICE_KEY,
         'Prefer': 'return=minimal'
       },
       body: JSON.stringify(booking)
