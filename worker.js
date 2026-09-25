@@ -204,20 +204,27 @@ async function getBlockedDates(env) {
 
 async function storeBooking(booking, env) {
   try {
-    // TODO: Store in Supabase or D1 database
-    // For now, we'll just log it
-    console.log('Storing booking:', booking);
+    if (!env.SUPABASE_URL || !env.SUPABASE_KEY) {
+      console.warn('Supabase credentials not configured');
+      return;
+    }
 
-    // If you set up Supabase, do:
-    // const response = await fetch('https://YOUR_SUPABASE_URL/rest/v1/bookings', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'Authorization': `Bearer ${env.SUPABASE_KEY}`,
-    //     'Prefer': 'return=minimal'
-    //   },
-    //   body: JSON.stringify(booking)
-    // });
+    const response = await fetch(`${env.SUPABASE_URL}/rest/v1/bookings`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${env.SUPABASE_KEY}`,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(booking)
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('Supabase error:', error);
+    } else {
+      console.log('Booking stored successfully:', booking.reference);
+    }
   } catch (error) {
     console.error('Database error:', error);
     // Don't fail the booking if database write fails
