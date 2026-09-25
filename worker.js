@@ -71,8 +71,6 @@ async function handleBooking(request, env, headers) {
       phone: payload.phone,
       idNumber: payload.idNumber,
       licenceNumber: payload.licenceNumber,
-      emergencyName: payload.emergencyName,
-      emergencyPhone: payload.emergencyPhone,
       pickupLocation: payload.pickupLocation,
       returnLocation: payload.returnLocation,
       pickupDate: payload.pickupDate,
