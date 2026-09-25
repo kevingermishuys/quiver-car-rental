@@ -214,6 +214,7 @@ async function storeBooking(booking, env) {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}`,
+        'apikey': env.SUPABASE_SERVICE_KEY,
         'Prefer': 'return=minimal'
       },
       body: JSON.stringify(booking)
