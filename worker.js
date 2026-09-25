@@ -66,9 +66,6 @@ async function handleBooking(request, env, headers) {
     // Prepare booking data
     const booking = {
       reference,
-      holdExpiresAt,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
       fullName: payload.fullName,
       email: payload.email,
       phone: payload.phone,
@@ -81,12 +78,7 @@ async function handleBooking(request, env, headers) {
       pickupDate: payload.pickupDate,
       returnDate: payload.returnDate,
       rentalDays,
-      country: payload.country || '',
-      notes: payload.notes || '',
-      rentalAmount,
-      depositAmount,
-      totalAmount,
-      paymentStatus: 'pending'
+      totalAmount
     };
 
     // Store in database
