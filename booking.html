@@ -333,7 +333,7 @@ function renderAvailabilityCalendar(animate){
   }
 }
 
-fetch("/api/bookings/availability")
+fetch("https://quiver-bookings-api.kevingermishuys.workers.dev/api/bookings/availability")
   .then(function(r){ if (!r.ok) throw new Error("bad response"); return r.json(); })
   .then(function(data){
     blockedRanges = data.blocked || [];
@@ -655,7 +655,7 @@ $("submitBooking").addEventListener("click", function(){
   $("submitBooking").disabled = true;
   $("submitBookingLabel").innerHTML = '<span class="bk-pay-spinner" aria-hidden="true"></span>Processing payment…';
 
-  fetch("/api/bookings", {
+  fetch("https://quiver-bookings-api.kevingermishuys.workers.dev/api/bookings", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(collectBookingPayload())
