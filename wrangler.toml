@@ -1,3 +1,4 @@
 name = "quiver-bookings-api"
 main = "worker.js"
 compatibility_date = "2024-09-25"
+account_id = "0b79d15c416bde5000ff365bbe2ab9d8"
