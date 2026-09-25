@@ -204,7 +204,7 @@ async function getBlockedDates(env) {
 
 async function storeBooking(booking, env) {
   try {
-    if (!env.SUPABASE_URL || !env.SUPABASE_KEY) {
+    if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY) {
       console.warn('Supabase credentials not configured');
       return;
     }
@@ -213,7 +213,7 @@ async function storeBooking(booking, env) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${env.SUPABASE_KEY}`,
+        'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}`,
         'Prefer': 'return=minimal'
       },
       body: JSON.stringify(booking)
