@@ -691,7 +691,7 @@ $("submitBooking").addEventListener("click", function(){
       $("submitBooking").disabled = false;
       updatePaymentAmount();
       if (/already booked|not available/i.test(err.message)) {
-        fetch("/api/bookings/availability")
+        fetch("https://quiver-bookings-api.kevingermishuys.workers.dev/api/bookings/availability")
           .then(function(r){ return r.ok ? r.json() : { blocked: [] }; })
           .then(function(data){ blockedRanges = data.blocked || []; })
           .catch(function(){});
