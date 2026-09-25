@@ -565,12 +565,14 @@ function buildMessage(){
 
 function collectBookingPayload(){
   var price = computePrice();
+  var days = computeDays();
   return {
     period: "daily",
     rate: price ? price.rate : null,
     estimatedTotal: price ? price.total : null,
     depositAmount: DEPOSIT_AMOUNT,
     amountDue: price ? price.total + DEPOSIT_AMOUNT : null,
+    rentalDays: days || 1,
     pickupDate: $("pickupDate").value,
     pickupTime: $("pickupTime").value,
     returnDate: $("returnDate").value,
