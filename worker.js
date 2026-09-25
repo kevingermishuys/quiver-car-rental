@@ -260,24 +260,30 @@ Quiver Car Rental
 Swakopmund, Namibia
     `.trim();
 
-    // TODO: Send via Resend or SendGrid
-    // For now, just log
-    console.log('Customer confirmation email queued:', booking.email);
+    if (!env.RESEND_API_KEY) {
+      console.warn('Resend API key not configured, skipping email');
+      return;
+    }
 
-    // If you use Resend:
-    // const response = await fetch('https://api.resend.com/emails', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'Authorization': `Bearer ${env.RESEND_API_KEY}`
-    //   },
-    //   body: JSON.stringify({
-    //     from: 'noreply@quivercarrental.com',
-    //     to: booking.email,
-    //     subject: `Booking Confirmation - Reference: ${booking.reference}`,
-    //     text: emailBody
-    //   })
-    // });
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${env.RESEND_API_KEY}`
+      },
+      body: JSON.stringify({
+        from: 'noreply@quivercarrental.com',
+        to: booking.email,
+        subject: `Booking Confirmation - Reference: ${booking.reference}`,
+        text: emailBody
+      })
+    });
+
+    if (response.ok) {
+      console.log('Customer confirmation email sent to:', booking.email);
+    } else {
+      console.error('Resend email error:', await response.text());
+    }
   } catch (error) {
     console.error('Email error:', error);
   }
@@ -319,9 +325,30 @@ Notes: ${booking.notes || 'None'}
 Please review and confirm with the customer.
     `.trim();
 
-    console.log('Admin notification email queued:', adminEmail);
+    if (!env.RESEND_API_KEY) {
+      console.warn('Resend API key not configured, skipping notification email');
+      return;
+    }
 
-    // TODO: Send via email service
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${env.RESEND_API_KEY}`
+      },
+      body: JSON.stringify({
+        from: 'noreply@quivercarrental.com',
+        to: adminEmail,
+        subject: `New Booking Request - Reference: ${booking.reference}`,
+        text: emailBody
+      })
+    });
+
+    if (response.ok) {
+      console.log('Admin notification email sent to:', adminEmail);
+    } else {
+      console.error('Resend notification error:', await response.text());
+    }
   } catch (error) {
     console.error('Notification error:', error);
   }
