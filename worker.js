@@ -66,17 +66,19 @@ async function handleBooking(request, env, headers) {
     // Prepare booking data
     const booking = {
       reference,
-      fullName: payload.fullName,
+      fullname: payload.fullName,
       email: payload.email,
       phone: payload.phone,
-      idNumber: payload.idNumber,
-      licenceNumber: payload.licenceNumber,
-      pickupLocation: payload.pickupLocation,
-      returnLocation: payload.returnLocation,
-      pickupDate: payload.pickupDate,
-      returnDate: payload.returnDate,
-      rentalDays,
-      totalAmount
+      idnumber: payload.idNumber,
+      licencenumber: payload.licenceNumber,
+      pickuplocation: payload.pickupLocation,
+      returnlocation: payload.returnLocation,
+      pickupdate: payload.pickupDate,
+      returndate: payload.returnDate,
+      rentaldays: rentalDays,
+      rentalamount: rentalAmount,
+      depositamount: depositAmount,
+      totalamount: totalAmount
     };
 
     // Store in database
@@ -97,8 +99,8 @@ async function handleBooking(request, env, headers) {
     return new Response(JSON.stringify({
       success: true,
       reference: booking.reference,
-      holdExpiresAt: booking.holdExpiresAt,
-      totalAmount: booking.totalAmount,
+      holdExpiresAt: holdExpiresAt,
+      totalAmount: booking.totalamount,
       paymentUrl: paymentUrl
     }), { status: 200, headers });
 
@@ -227,21 +229,21 @@ async function storeBooking(booking, env) {
 async function sendCustomerConfirmationEmail(booking, env) {
   try {
     const emailBody = `
-Hi ${booking.fullName},
+Hi ${booking.fullname},
 
 Thank you for your booking request with Quiver Car Rental!
 
 Your booking reference: ${booking.reference}
-Dates held until: ${booking.holdExpiresAt}
+Dates held until: ${holdExpiresAt}
 
 Booking Details:
-- Pickup: ${booking.pickupDate} at ${booking.pickupLocation}
-- Return: ${booking.returnDate} at ${booking.returnLocation}
-- Rental Days: ${booking.rentalDays}
-- Daily Rate: N$${(booking.rentalAmount / booking.rentalDays).toLocaleString()}
-- Rental Amount: N$${booking.rentalAmount.toLocaleString()}
-- Refundable Deposit: N$${booking.depositAmount.toLocaleString()}
-- Total Due: N$${booking.totalAmount.toLocaleString()}
+- Pickup: ${booking.pickupdate} at ${booking.pickuplocation}
+- Return: ${booking.returndate} at ${booking.returnlocation}
+- Rental Days: ${booking.rentaldays}
+- Daily Rate: N$${(booking.rentalamount / booking.rentaldays).toLocaleString()}
+- Rental Amount: N$${booking.rentalamount.toLocaleString()}
+- Refundable Deposit: N$${booking.depositamount.toLocaleString()}
+- Total Due: N$${booking.totalamount.toLocaleString()}
 
 We will confirm availability and pricing with you shortly via WhatsApp or email.
 
@@ -290,30 +292,24 @@ async function sendNotificationEmail(booking, env) {
 New Booking Request Received!
 
 Reference: ${booking.reference}
-Status: ${booking.status}
 
 Customer:
-${booking.fullName}
+${booking.fullname}
 Email: ${booking.email}
 Phone: ${booking.phone}
-Country: ${booking.country || 'N/A'}
 
-ID/Passport: ${booking.idNumber}
-Driver's Licence: ${booking.licenceNumber}
-
-Emergency Contact: ${booking.emergencyName} - ${booking.emergencyPhone}
+ID/Passport: ${booking.idnumber}
+Driver's Licence: ${booking.licencenumber}
 
 Booking Dates:
-Pickup: ${booking.pickupDate} at ${booking.pickupLocation}
-Return: ${booking.returnDate} at ${booking.returnLocation}
-Days: ${booking.rentalDays}
+Pickup: ${booking.pickupdate} at ${booking.pickuplocation}
+Return: ${booking.returndate} at ${booking.returnlocation}
+Days: ${booking.rentaldays}
 
 Pricing:
-Rental: N$${booking.rentalAmount.toLocaleString()}
-Deposit: N$${booking.depositAmount.toLocaleString()}
-Total: N$${booking.totalAmount.toLocaleString()}
-
-Notes: ${booking.notes || 'None'}
+Rental: N$${booking.rentalamount.toLocaleString()}
+Deposit: N$${booking.depositamount.toLocaleString()}
+Total: N$${booking.totalamount.toLocaleString()}
 
 Please review and confirm with the customer.
     `.trim();
