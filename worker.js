@@ -78,7 +78,8 @@ async function handleBooking(request, env, headers) {
       rentaldays: rentalDays,
       rentalamount: rentalAmount,
       depositamount: depositAmount,
-      totalamount: totalAmount
+      totalamount: totalAmount,
+      holdexpiresaat: holdExpiresAt
     };
 
     // Store in database
@@ -99,7 +100,7 @@ async function handleBooking(request, env, headers) {
     return new Response(JSON.stringify({
       success: true,
       reference: booking.reference,
-      holdExpiresAt: holdExpiresAt,
+      holdExpiresAt: booking.holdexpiresaat,
       totalAmount: booking.totalamount,
       paymentUrl: paymentUrl
     }), { status: 200, headers });
@@ -234,7 +235,7 @@ Hi ${booking.fullname},
 Thank you for your booking request with Quiver Car Rental!
 
 Your booking reference: ${booking.reference}
-Dates held until: ${holdExpiresAt}
+Dates held until: ${booking.holdexpiresaat}
 
 Booking Details:
 - Pickup: ${booking.pickupdate} at ${booking.pickuplocation}
