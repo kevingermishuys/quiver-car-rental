@@ -19,7 +19,7 @@ jobs:
         run: npm install -g wrangler
 
       - name: Deploy Worker
-        run: wrangler deploy worker.js
+        run: wrangler deploy worker.js --env production
         env:
           CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
