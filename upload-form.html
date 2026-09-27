@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book Your Fortuner - With Documents</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+    }
+    header {
+      background: #181210;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .form-card {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #181210;
+      margin-bottom: 25px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+    }
+    .required {
+      color: #C86403;
+    }
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="date"],
+    select,
+    input[type="file"] {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    input[type="file"] {
+      padding: 8px;
+    }
+    .file-input-group {
+      border: 2px dashed #C86403;
+      padding: 20px;
+      border-radius: 4px;
+      text-align: center;
+      background: #f9f9f9;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .file-input-group:hover {
+      background: #f0f0f0;
+    }
+    .file-input-group input[type="file"] {
+      display: none;
+    }
+    .file-label {
+      color: #C86403;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .hint {
+      font-size: 12px;
+      color: #999;
+      margin-top: 5px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 600px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #C86403;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #a15002;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .message {
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .success {
+      background: #d4edda;
+      color: #155724;
+    }
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .file-preview {
+      margin-top: 10px;
+      padding: 10px;
+      background: #e8f5e9;
+      color: #2e7d32;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🚗 Book Your Fortuner - With Documents</h1>
+  </header>
+
+  <div class="container">
+    <div class="form-card">
+      <h2>Booking Request</h2>
+
+      <div id="messageDiv"></div>
+
+      <form id="bookingForm" onsubmit="submitForm(event)">
+        <!-- Personal Details -->
+        <div class="form-group">
+          <label>Full Name <span class="required">*</span></label>
+          <input type="text" name="fullName" required>
+        </div>
+
+        <div class="form-group">
+          <label>Email <span class="required">*</span></label>
+          <input type="email" name="email" required>
+        </div>
+
+        <div class="form-group">
+          <label>Phone <span class="required">*</span></label>
+          <input type="tel" name="phone" required>
+        </div>
+
+        <!-- Document Details -->
+        <div class="form-group">
+          <label>ID/Passport Number <span class="required">*</span></label>
+          <input type="text" name="idNumber" required>
+        </div>
+
+        <div class="form-group">
+          <label>Driver's License Number <span class="required">*</span></label>
+          <input type="text" name="licenceNumber" required>
+        </div>
+
+        <!-- File Uploads -->
+        <div class="form-group">
+          <label>ID Photo <span class="required">*</span></label>
+          <div class="file-input-group" onclick="document.getElementById('idPhotoInput').click()">
+            <input type="file" id="idPhotoInput" name="idPhoto" accept="image/jpeg,image/png,application/pdf" required>
+            <div class="file-label">Click to upload or drag and drop</div>
+            <div class="hint">JPG, PNG or PDF (max 10MB)</div>
+          </div>
+          <div id="idPhotoPreview" class="file-preview" style="display:none;"></div>
+        </div>
+
+        <div class="form-group">
+          <label>License Photo <span class="required">*</span></label>
+          <div class="file-input-group" onclick="document.getElementById('licensePhotoInput').click()">
+            <input type="file" id="licensePhotoInput" name="licensePhoto" accept="image/jpeg,image/png,application/pdf" required>
+            <div class="file-label">Click to upload or drag and drop</div>
+            <div class="hint">JPG, PNG or PDF (max 10MB)</div>
+          </div>
+          <div id="licensePhotoPreview" class="file-preview" style="display:none;"></div>
+        </div>
+
+        <!-- Trip Details -->
+        <div class="form-group">
+          <label>Pickup Location <span class="required">*</span></label>
+          <select name="pickupLocation" required>
+            <option value="">Select location</option>
+            <option value="Swakopmund">Swakopmund</option>
+            <option value="Hosea Kutako International Airport (Windhoek)">Hosea Kutako International Airport</option>
+            <option value="Walvis Bay International Airport">Walvis Bay International Airport</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Return Location <span class="required">*</span></label>
+          <select name="returnLocation" required>
+            <option value="">Select location</option>
+            <option value="Swakopmund">Swakopmund</option>
+            <option value="Hosea Kutako International Airport (Windhoek)">Hosea Kutako International Airport</option>
+            <option value="Walvis Bay International Airport">Walvis Bay International Airport</option>
+          </select>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Pickup Date <span class="required">*</span></label>
+            <input type="date" name="pickupDate" required>
+          </div>
+          <div class="form-group">
+            <label>Return Date <span class="required">*</span></label>
+            <input type="date" name="returnDate" required>
+          </div>
+        </div>
+
+        <button type="submit" id="submitBtn">Submit Booking</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://xgvquuiwdxwgeiodixuw.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh... (your anon key)';
+    const WORKER_URL = 'https://quiver-bookings-api-production.kevingermishuys.workers.dev/api/bookings';
+
+    // File preview handlers
+    ['idPhoto', 'licensePhoto'].forEach(id => {
+      document.getElementById(id + 'Input').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        const preview = document.getElementById(id + 'Preview');
+        if (file) {
+          preview.textContent = `✓ ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`;
+          preview.style.display = 'block';
+        }
+      });
+    });
+
+    async function uploadToSupabase(file, bucket, path) {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const response = await fetch(`${SUPABASE_URL}/storage/v1/object/${bucket}/${path}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'apikey': SUPABASE_KEY
+          },
+          body: file
+        });
+
+        if (!response.ok) {
+          throw new Error('Upload failed');
+        }
+
+        return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${path}`;
+      } catch (err) {
+        console.error('Upload error:', err);
+        throw err;
+      }
+    }
+
+    async function submitForm(event) {
+      event.preventDefault();
+
+      const submitBtn = document.getElementById('submitBtn');
+      const messageDiv = document.getElementById('messageDiv');
+
+      try {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="loading"></span> Processing...';
+        messageDiv.innerHTML = '';
+
+        const form = document.getElementById('bookingForm');
+        const formData = new FormData(form);
+
+        // Upload ID photo
+        const idPhotoFile = document.getElementById('idPhotoInput').files[0];
+        let idPhotoUrl = null;
+        if (idPhotoFile) {
+          showMessage('Uploading ID photo...', 'info');
+          idPhotoUrl = await uploadToSupabase(idPhotoFile, 'booking-documents', `id-${Date.now()}-${idPhotoFile.name}`);
+        }
+
+        // Upload license photo
+        const licensePhotoFile = document.getElementById('licensePhotoInput').files[0];
+        let licensePhotoUrl = null;
+        if (licensePhotoFile) {
+          showMessage('Uploading license photo...', 'info');
+          licensePhotoUrl = await uploadToSupabase(licensePhotoFile, 'booking-documents', `license-${Date.now()}-${licensePhotoFile.name}`);
+        }
+
+        // Calculate rental days
+        const pickupDate = new Date(formData.get('pickupDate'));
+        const returnDate = new Date(formData.get('returnDate'));
+        const rentalDays = Math.ceil((returnDate - pickupDate) / (1000 * 60 * 60 * 24));
+
+        // Prepare booking data
+        const bookingData = {
+          fullName: formData.get('fullName'),
+          email: formData.get('email'),
+          phone: formData.get('phone'),
+          idNumber: formData.get('idNumber'),
+          licenceNumber: formData.get('licenceNumber'),
+          pickupLocation: formData.get('pickupLocation'),
+          returnLocation: formData.get('returnLocation'),
+          pickupDate: formData.get('pickupDate'),
+          returnDate: formData.get('returnDate'),
+          rentalDays: rentalDays,
+          id_photo_url: idPhotoUrl,
+          license_photo_url: licensePhotoUrl
+        };
+
+        showMessage('Submitting booking...', 'info');
+
+        // Send to Worker
+        const response = await fetch(WORKER_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(bookingData)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          showMessage(`✓ Booking submitted! Reference: ${result.reference}`, 'success');
+          form.reset();
+          ['idPhotoPreview', 'licensePhotoPreview'].forEach(id => {
+            document.getElementById(id).style.display = 'none';
+          });
+        } else {
+          showMessage(`Error: ${result.error}`, 'error');
+        }
+      } catch (err) {
+        showMessage(`Error: ${err.message}`, 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Submit Booking';
+      }
+    }
+
+    function showMessage(msg, type) {
+      const div = document.getElementById('messageDiv');
+      let className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+      div.innerHTML = `<div class="message ${className}">${msg}</div>`;
+    }
+  </script>
+</body>
+</html>

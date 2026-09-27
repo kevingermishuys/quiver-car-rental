@@ -79,7 +79,10 @@ async function handleBooking(request, env, headers) {
       rentalamount: rentalAmount,
       depositamount: depositAmount,
       totalamount: totalAmount,
-      holdexpiresat: holdExpiresAt
+      holdexpiresat: holdExpiresAt,
+      status: 'pending',
+      id_photo_url: payload.id_photo_url || null,
+      license_photo_url: payload.license_photo_url || null
     };
 
     // Store in database
