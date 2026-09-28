@@ -277,6 +277,7 @@
 
   <script>
     let currentAuth = null;
+    let supabaseClient = null;
 
     function authenticate() {
       const apiKey = document.getElementById('apiKey').value.trim();
@@ -290,13 +291,21 @@
       currentAuth = { apiKey, projectUrl };
       localStorage.setItem('quiverAuth', JSON.stringify(currentAuth));
 
-      document.getElementById('authSection').classList.add('hidden');
-      document.getElementById('dashboardSection').classList.remove('hidden');
-      loadBookings();
+      try {
+        const { createClient } = window.supabase;
+        supabaseClient = createClient(projectUrl, apiKey);
+
+        document.getElementById('authSection').classList.add('hidden');
+        document.getElementById('dashboardSection').classList.remove('hidden');
+        loadBookings();
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
     }
 
     function logout() {
       currentAuth = null;
+      supabaseClient = null;
       localStorage.removeItem('quiverAuth');
       document.getElementById('authSection').classList.remove('hidden');
       document.getElementById('dashboardSection').classList.add('hidden');
@@ -305,12 +314,9 @@
     }
 
     function loadBookings() {
-      if (!currentAuth) return;
+      if (!supabaseClient) return;
 
-      const { createClient } = window.supabase;
-      const supabase = createClient(currentAuth.projectUrl, currentAuth.apiKey);
-
-      supabase
+      supabaseClient
         .from('bookings')
         .select('*')
         .order('id', { ascending: false })
@@ -443,10 +449,7 @@
     function updateStatus(reference, newStatus) {
       if (!confirm(`Are you sure you want to ${newStatus} this booking?`)) return;
 
-      const { createClient } = window.supabase;
-      const supabase = createClient(currentAuth.projectUrl, currentAuth.apiKey);
-
-      supabase
+      supabaseClient
         .from('bookings')
         .update({ status: newStatus })
         .eq('reference', reference)
@@ -475,7 +478,16 @@
         const auth = JSON.parse(saved);
         document.getElementById('apiKey').value = auth.apiKey;
         document.getElementById('projectUrl').value = auth.projectUrl;
-        authenticate();
+        currentAuth = auth;
+        try {
+          const { createClient } = window.supabase;
+          supabaseClient = createClient(auth.projectUrl, auth.apiKey);
+          document.getElementById('authSection').classList.add('hidden');
+          document.getElementById('dashboardSection').classList.remove('hidden');
+          loadBookings();
+        } catch (err) {
+          console.error('Error restoring session:', err);
+        }
       }
     });
 
