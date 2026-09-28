@@ -65,9 +65,10 @@ textarea.bk-field{min-height:110px;padding-top:.75rem;}
 .bk-cal-navlabel{font-family:var(--font-body),system-ui,sans-serif;font-weight:600;font-size:.9rem;color:rgb(var(--ink-950))}
 .bk-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:.25rem;max-width:22rem;margin:0 auto}
 .bk-cal-dow{text-align:center;font-size:.62rem;text-transform:uppercase;letter-spacing:.03em;color:rgb(var(--ink-400))}
-.bk-cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:.72rem;border-radius:.25rem;color:rgb(var(--ink-700))}
-.bk-cal-day.is-blocked{background:rgb(var(--red-50));color:rgb(var(--red-700));text-decoration:line-through}
-.bk-cal-day.is-past{opacity:.35}
+.bk-cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:.72rem;border-radius:.25rem;color:rgb(var(--ink-950));background:rgb(232 245 233);border:1px solid rgb(76 175 80);font-weight:600;cursor:pointer;transition:all .2s}
+.bk-cal-day:hover:not(.is-blocked){background:rgb(76 175 80);color:white}
+.bk-cal-day.is-blocked{background:rgb(var(--red-50));color:rgb(var(--red-700));text-decoration:line-through;cursor:not-allowed;border:1px solid rgb(var(--red-700))}
+.bk-cal-day.is-past{opacity:.35;cursor:not-allowed}
 .bk-cal-legend{display:flex;flex-wrap:wrap;gap:1.25rem;margin-top:1rem;font-size:.75rem;color:rgb(var(--ink-600));align-items:center}
 .bk-cal-swatch{display:inline-block;width:.7rem;height:.7rem;border-radius:.2rem;margin-right:.4rem;vertical-align:middle}
 </style>
@@ -114,8 +115,9 @@ header a[class~="bg-sun-600"]{padding-left:1rem;padding-right:1rem;padding-top:.
 <div id="availabilityCalendar"></div>
 <p class="bk-hint" id="availabilityHint">Loading availability…</p>
 <div class="bk-cal-legend">
-<span><span class="bk-cal-swatch" style="background:rgb(254 242 242)"></span>Already booked</span>
-<span><span class="bk-cal-swatch" style="background:#fff;border:1px solid rgb(223 203 174)"></span>Available</span>
+<span><span class="bk-cal-swatch" style="background:rgb(232 245 233);border:1px solid rgb(76 175 80)"></span>Available ✓</span>
+<span><span class="bk-cal-swatch" style="background:rgb(254 242 242);border:1px solid rgb(var(--red-700))"></span>Booked</span>
+<span><span class="bk-cal-swatch" style="opacity:.35;background:#fff;border:1px solid #ccc"></span>Past dates</span>
 </div>
 </div>
 
