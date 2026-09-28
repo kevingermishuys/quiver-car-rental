@@ -7,4 +7,4 @@ account_id = "0b79d15c416bde5000ff365bbe2ab9d8"
 enabled = true
 
 [env.production]
-vars = { SUPABASE_URL = "https://xgvquuiwdxwgeiodixuw.supabase.co" }
+vars = { SUPABASE_URL = "https://xgvquuiwdxwgeiodixuw.supabase.co", SUPABASE_SERVICE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhndnF1dWl3ZHh3Z2Vpb2RpeHV3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MDMxODgyNiwiZXhwIjoyMTA1ODk0ODI2fQ.QbjPN35gM5igKyxvbt6VKXqjDrd1YOhOcUEnQeI4G2Q" }
