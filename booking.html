@@ -567,10 +567,10 @@ function buildMessage(){
   return lines.filter(function(l){ return l !== ""; }).join("\n");
 }
 
-function collectBookingPayload(fileUrls){
+function collectBookingPayload(fileData){
   var price = computePrice();
   var days = computeDays();
-  fileUrls = fileUrls || {};
+  fileData = fileData || {};
   return {
     period: "daily",
     rate: price ? price.rate : null,
@@ -596,8 +596,8 @@ function collectBookingPayload(fileUrls){
     licenceNumber: $("licenceNumber").value.trim(),
     idDocumentName: $("idDocument").files[0] ? $("idDocument").files[0].name : "",
     licenceDocumentName: $("licenceDocument").files[0] ? $("licenceDocument").files[0].name : "",
-    id_photo_url: fileUrls.idPhotoUrl || null,
-    license_photo_url: fileUrls.licensePhotoUrl || null,
+    id_photo_base64: fileData.id_photo_base64 || null,
+    license_photo_base64: fileData.license_photo_base64 || null,
     notes: $("notes").value.trim()
   };
 }
@@ -625,43 +625,26 @@ wireDocumentInput("licenceDocument", "licenceDocumentHint", "Driver's licence");
 async function uploadFilesToSupabase(){
   var idFile = $("idDocument").files[0];
   var licenceFile = $("licenceDocument").files[0];
-  var urls = { idPhotoUrl: null, licensePhotoUrl: null };
+  var fileData = { id_photo_base64: null, license_photo_base64: null };
 
   if (idFile) {
-    var idPath = "id-" + Date.now() + "-" + idFile.name;
-    var idRes = await fetch(SUPABASE_URL + "/storage/v1/object/booking-documents/" + idPath, {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer " + SUPABASE_KEY,
-        "apikey": SUPABASE_KEY
-      },
-      body: idFile
-    });
-    if (idRes.ok) {
-      urls.idPhotoUrl = SUPABASE_URL + "/storage/v1/object/public/booking-documents/" + idPath;
-    } else {
-      throw new Error("Failed to upload ID photo: " + (await idRes.text()));
-    }
+    fileData.id_photo_base64 = await fileToBase64(idFile);
   }
 
   if (licenceFile) {
-    var licPath = "license-" + Date.now() + "-" + licenceFile.name;
-    var licRes = await fetch(SUPABASE_URL + "/storage/v1/object/booking-documents/" + licPath, {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer " + SUPABASE_KEY,
-        "apikey": SUPABASE_KEY
-      },
-      body: licenceFile
-    });
-    if (licRes.ok) {
-      urls.licensePhotoUrl = SUPABASE_URL + "/storage/v1/object/public/booking-documents/" + licPath;
-    } else {
-      throw new Error("Failed to upload license photo: " + (await licRes.text()));
-    }
+    fileData.license_photo_base64 = await fileToBase64(licenceFile);
   }
 
-  return urls;
+  return fileData;
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 // ---- Card field formatting (cosmetic only — see fine print: nothing here is transmitted or stored) ----

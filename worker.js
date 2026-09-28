@@ -61,6 +61,16 @@ async function handleBooking(request, env, headers) {
     const reference = generateReference();
     const holdExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
+    // Upload files if provided
+    let idPhotoUrl = null;
+    let licensePhotoUrl = null;
+    if (payload.id_photo_base64) {
+      idPhotoUrl = await uploadFileToSupabase(payload.id_photo_base64, `id-${reference}`, env);
+    }
+    if (payload.license_photo_base64) {
+      licensePhotoUrl = await uploadFileToSupabase(payload.license_photo_base64, `license-${reference}`, env);
+    }
+
     // Calculate total amount
     const rentalDays = payload.rentalDays || 1;
     const rates = {
@@ -91,8 +101,8 @@ async function handleBooking(request, env, headers) {
       totalamount: totalAmount,
       holdexpiresat: holdExpiresAt,
       status: 'pending',
-      id_photo_url: payload.id_photo_url || null,
-      license_photo_url: payload.license_photo_url || null
+      id_photo_url: idPhotoUrl,
+      license_photo_url: licensePhotoUrl
     };
 
     // Store in database
@@ -237,6 +247,44 @@ async function storeBooking(booking, env) {
   } catch (error) {
     console.error('Database error:', error);
     // Don't fail the booking if database write fails
+  }
+}
+
+async function uploadFileToSupabase(base64Data, fileName, env) {
+  try {
+    if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY) {
+      console.warn('Supabase credentials not configured, skipping file upload');
+      return null;
+    }
+
+    const binaryString = atob(base64Data.split(',')[1] || base64Data);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+
+    const url = `${env.SUPABASE_URL}/storage/v1/object/booking-documents/${fileName}`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}`,
+        'apikey': env.SUPABASE_SERVICE_KEY
+      },
+      body: bytes
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('File upload error:', error);
+      return null;
+    }
+
+    const publicUrl = `${env.SUPABASE_URL}/storage/v1/object/public/booking-documents/${fileName}`;
+    return publicUrl;
+  } catch (error) {
+    console.error('File upload error:', error);
+    return null;
   }
 }
 
