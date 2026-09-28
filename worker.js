@@ -61,15 +61,16 @@ async function handleBooking(request, env, headers) {
     const reference = generateReference();
     const holdExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-    // Upload files if provided
+    // Upload files if provided (temporarily disabled for testing)
     let idPhotoUrl = null;
     let licensePhotoUrl = null;
-    if (payload.id_photo_base64) {
-      idPhotoUrl = await uploadFileToSupabase(payload.id_photo_base64, `id-${reference}`, env);
-    }
-    if (payload.license_photo_base64) {
-      licensePhotoUrl = await uploadFileToSupabase(payload.license_photo_base64, `license-${reference}`, env);
-    }
+    // TODO: Re-enable file uploads once Supabase permissions are fixed
+    // if (payload.id_photo_base64) {
+    //   idPhotoUrl = await uploadFileToSupabase(payload.id_photo_base64, `id-${reference}`, env);
+    // }
+    // if (payload.license_photo_base64) {
+    //   licensePhotoUrl = await uploadFileToSupabase(payload.license_photo_base64, `license-${reference}`, env);
+    // }
 
     // Calculate total amount
     const rentalDays = payload.rentalDays || 1;
