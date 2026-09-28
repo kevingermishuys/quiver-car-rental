@@ -233,6 +233,7 @@
       margin-bottom: 20px;
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <header>
@@ -306,23 +307,23 @@
     function loadBookings() {
       if (!currentAuth) return;
 
-      const url = `${currentAuth.projectUrl}/rest/v1/bookings?order=createdaat.desc`;
+      const { createClient } = window.supabase;
+      const supabase = createClient(currentAuth.projectUrl, currentAuth.apiKey);
 
-      fetch(url, {
-        headers: {
-          'apikey': currentAuth.apiKey,
-          'Authorization': `Bearer ${currentAuth.apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      })
-      .then(res => res.json())
-      .then(bookings => {
-        renderBookings(bookings);
-      })
-      .catch(err => {
-        console.error('Error:', err);
-        document.getElementById('bookingsContainer').innerHTML = `<div class="error">Failed to load bookings: ${err.message}</div>`;
-      });
+      supabase
+        .from('bookings')
+        .select('*')
+        .order('id', { ascending: false })
+        .then(({ data, error }) => {
+          if (error) {
+            throw error;
+          }
+          renderBookings(data);
+        })
+        .catch(err => {
+          console.error('Error:', err);
+          document.getElementById('bookingsContainer').innerHTML = `<div class="error">Failed to load bookings: ${err.message}</div>`;
+        });
     }
 
     function renderBookings(bookings) {
@@ -442,25 +443,23 @@
     function updateStatus(reference, newStatus) {
       if (!confirm(`Are you sure you want to ${newStatus} this booking?`)) return;
 
-      const url = `${currentAuth.projectUrl}/rest/v1/bookings?reference=eq.${reference}`;
+      const { createClient } = window.supabase;
+      const supabase = createClient(currentAuth.projectUrl, currentAuth.apiKey);
 
-      fetch(url, {
-        method: 'PATCH',
-        headers: {
-          'apikey': currentAuth.apiKey,
-          'Authorization': `Bearer ${currentAuth.apiKey}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify({ status: newStatus })
-      })
-      .then(() => {
-        showMessage(`Booking ${newStatus}!`, 'success');
-        loadBookings();
-      })
-      .catch(err => {
-        showMessage(`Error updating booking: ${err.message}`, 'error');
-      });
+      supabase
+        .from('bookings')
+        .update({ status: newStatus })
+        .eq('reference', reference)
+        .then(({ error }) => {
+          if (error) {
+            throw error;
+          }
+          showMessage(`Booking ${newStatus}!`, 'success');
+          loadBookings();
+        })
+        .catch(err => {
+          showMessage(`Error updating booking: ${err.message}`, 'error');
+        });
     }
 
     function showMessage(msg, type) {
