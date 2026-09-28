@@ -265,6 +265,10 @@ var DEPOSIT_AMOUNT = 5000;
 // Expected shape: a base URL that accepts amount/reference/return_url query params.
 var PAYMENT_PROVIDER_URL = null;
 
+// Supabase configuration for file uploads
+var SUPABASE_URL = "https://xgvquuiwdxwgeiodixuw.supabase.co";
+var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhndnF1dWl3ZHh3Z2Vpb2RpeHV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAzMTg4MjYsImV4cCI6MjEwNTg5NDgyNn0.fmY_B7jPMsARvWldnuJQXVKNNUXOtY-gl-3XdNqFjFY";
+
 var totalSteps = 4;
 var currentStep = 1;
 var blockedRanges = [];
@@ -563,9 +567,10 @@ function buildMessage(){
   return lines.filter(function(l){ return l !== ""; }).join("\n");
 }
 
-function collectBookingPayload(){
+function collectBookingPayload(fileUrls){
   var price = computePrice();
   var days = computeDays();
+  fileUrls = fileUrls || {};
   return {
     period: "daily",
     rate: price ? price.rate : null,
@@ -591,6 +596,8 @@ function collectBookingPayload(){
     licenceNumber: $("licenceNumber").value.trim(),
     idDocumentName: $("idDocument").files[0] ? $("idDocument").files[0].name : "",
     licenceDocumentName: $("licenceDocument").files[0] ? $("licenceDocument").files[0].name : "",
+    id_photo_url: fileUrls.idPhotoUrl || null,
+    license_photo_url: fileUrls.licensePhotoUrl || null,
     notes: $("notes").value.trim()
   };
 }
@@ -613,6 +620,49 @@ function wireDocumentInput(inputId, hintId, label){
 }
 wireDocumentInput("idDocument", "idDocumentHint", "ID or passport");
 wireDocumentInput("licenceDocument", "licenceDocumentHint", "Driver's licence");
+
+// Upload files to Supabase Storage
+async function uploadFilesToSupabase(){
+  var idFile = $("idDocument").files[0];
+  var licenceFile = $("licenceDocument").files[0];
+  var urls = { idPhotoUrl: null, licensePhotoUrl: null };
+
+  if (idFile) {
+    var idPath = "id-" + Date.now() + "-" + idFile.name;
+    var idRes = await fetch(SUPABASE_URL + "/storage/v1/object/booking-documents/" + idPath, {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + SUPABASE_KEY,
+        "apikey": SUPABASE_KEY
+      },
+      body: idFile
+    });
+    if (idRes.ok) {
+      urls.idPhotoUrl = SUPABASE_URL + "/storage/v1/object/public/booking-documents/" + idPath;
+    } else {
+      throw new Error("Failed to upload ID photo: " + (await idRes.text()));
+    }
+  }
+
+  if (licenceFile) {
+    var licPath = "license-" + Date.now() + "-" + licenceFile.name;
+    var licRes = await fetch(SUPABASE_URL + "/storage/v1/object/booking-documents/" + licPath, {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + SUPABASE_KEY,
+        "apikey": SUPABASE_KEY
+      },
+      body: licenceFile
+    });
+    if (licRes.ok) {
+      urls.licensePhotoUrl = SUPABASE_URL + "/storage/v1/object/public/booking-documents/" + licPath;
+    } else {
+      throw new Error("Failed to upload license photo: " + (await licRes.text()));
+    }
+  }
+
+  return urls;
+}
 
 // ---- Card field formatting (cosmetic only — see fine print: nothing here is transmitted or stored) ----
 $("cardNumber").addEventListener("input", function(){
@@ -646,7 +696,7 @@ function validateCardFields(){
   return ok;
 }
 
-$("submitBooking").addEventListener("click", function(){
+$("submitBooking").addEventListener("click", async function(){
   $("err-submit").hidden = true;
   if (!validateCardFields()) {
     var firstErr = document.querySelector('#depositInfo .bk-error:not([hidden])');
@@ -655,50 +705,56 @@ $("submitBooking").addEventListener("click", function(){
   }
 
   $("submitBooking").disabled = true;
-  $("submitBookingLabel").innerHTML = '<span class="bk-pay-spinner" aria-hidden="true"></span>Processing payment…';
+  $("submitBookingLabel").innerHTML = '<span class="bk-pay-spinner" aria-hidden="true"></span>Uploading files…';
 
-  fetch("https://quiver-bookings-api-production.kevingermishuys.workers.dev/api/bookings", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(collectBookingPayload())
-  })
-    .then(function(r){ return r.json().then(function(data){ return { ok: r.ok, data: data }; }); })
-    .then(function(result){
-      if (!result.ok) {
-        throw new Error(result.data && result.data.error ? result.data.error : "Something went wrong. Please try again.");
-      }
-      lastBooking = { reference: result.data.reference, holdExpiresAt: result.data.holdExpiresAt };
+  try {
+    var fileUrls = await uploadFilesToSupabase();
 
-      if (PAYMENT_PROVIDER_URL) {
-        var payUrl = PAYMENT_PROVIDER_URL
-          + "?amount=" + encodeURIComponent(result.data.depositAmount)
-          + "&reference=" + encodeURIComponent(result.data.reference)
-          + "&return_url=" + encodeURIComponent(window.location.href);
-        window.location.href = payUrl;
-        return;
-      }
+    $("submitBookingLabel").innerHTML = '<span class="bk-pay-spinner" aria-hidden="true"></span>Processing payment…';
 
-      $("bookingRef").textContent = lastBooking.reference;
-      $("holdExpiry").textContent = lastBooking.holdExpiresAt;
-      $("submitRow").hidden = true;
-      $("depositInfo").hidden = true;
-      $("afterSubmit").hidden = false;
-      if (window.gsap) {
-        gsap.fromTo($("afterSubmit"), { opacity: 0, y: 12, scale: 0.98 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "power2.out" });
-      }
-    })
-    .catch(function(err){
-      $("err-submit").textContent = err.message;
-      $("err-submit").hidden = false;
-      $("submitBooking").disabled = false;
-      updatePaymentAmount();
-      if (/already booked|not available/i.test(err.message)) {
-        fetch("https://quiver-bookings-api-production.kevingermishuys.workers.dev/api/bookings/availability")
-          .then(function(r){ return r.ok ? r.json() : { blocked: [] }; })
-          .then(function(data){ blockedRanges = data.blocked || []; })
-          .catch(function(){});
-      }
+    var response = await fetch("https://quiver-bookings-api-production.kevingermishuys.workers.dev/api/bookings", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(collectBookingPayload(fileUrls))
     });
+
+    var result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result && result.error ? result.error : "Something went wrong. Please try again.");
+    }
+
+    lastBooking = { reference: result.reference, holdExpiresAt: result.holdExpiresAt };
+
+    if (PAYMENT_PROVIDER_URL) {
+      var payUrl = PAYMENT_PROVIDER_URL
+        + "?amount=" + encodeURIComponent(result.totalAmount)
+        + "&reference=" + encodeURIComponent(result.reference)
+        + "&return_url=" + encodeURIComponent(window.location.href);
+      window.location.href = payUrl;
+      return;
+    }
+
+    $("bookingRef").textContent = lastBooking.reference;
+    $("holdExpiry").textContent = lastBooking.holdExpiresAt;
+    $("submitRow").hidden = true;
+    $("depositInfo").hidden = true;
+    $("afterSubmit").hidden = false;
+    if (window.gsap) {
+      gsap.fromTo($("afterSubmit"), { opacity: 0, y: 12, scale: 0.98 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "power2.out" });
+    }
+  } catch(err){
+    $("err-submit").textContent = err.message;
+    $("err-submit").hidden = false;
+    $("submitBooking").disabled = false;
+    updatePaymentAmount();
+    if (/already booked|not available/i.test(err.message)) {
+      fetch("https://quiver-bookings-api-production.kevingermishuys.workers.dev/api/bookings/availability")
+        .then(function(r){ return r.ok ? r.json() : { blocked: [] }; })
+        .then(function(data){ blockedRanges = data.blocked || []; })
+        .catch(function(){});
+    }
+  }
 });
 
 $("sendWhatsapp").addEventListener("click", function(){
