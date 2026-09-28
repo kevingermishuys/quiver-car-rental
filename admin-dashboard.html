@@ -213,11 +213,6 @@
     .file-preview a:hover {
       background: #004085;
     }
-    .loading {
-      text-align: center;
-      padding: 20px;
-      color: #999;
-    }
     .error {
       background: #f8d7da;
       color: #721c24;
@@ -233,7 +228,6 @@
       margin-bottom: 20px;
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <header>
@@ -276,8 +270,7 @@
   </div>
 
   <script>
-    let currentAuth = null;
-    let supabaseClient = null;
+    const WORKER_URL = 'https://quiver-bookings-api-production.kevingermishuys.workers.dev/api/admin';
 
     function authenticate() {
       const apiKey = document.getElementById('apiKey').value.trim();
@@ -288,24 +281,13 @@
         return;
       }
 
-      currentAuth = { apiKey, projectUrl };
-      localStorage.setItem('quiverAuth', JSON.stringify(currentAuth));
-
-      try {
-        const { createClient } = window.supabase;
-        supabaseClient = createClient(projectUrl, apiKey);
-
-        document.getElementById('authSection').classList.add('hidden');
-        document.getElementById('dashboardSection').classList.remove('hidden');
-        loadBookings();
-      } catch (err) {
-        alert('Error: ' + err.message);
-      }
+      localStorage.setItem('quiverAuth', JSON.stringify({ apiKey, projectUrl }));
+      document.getElementById('authSection').classList.add('hidden');
+      document.getElementById('dashboardSection').classList.remove('hidden');
+      loadBookings();
     }
 
     function logout() {
-      currentAuth = null;
-      supabaseClient = null;
       localStorage.removeItem('quiverAuth');
       document.getElementById('authSection').classList.remove('hidden');
       document.getElementById('dashboardSection').classList.add('hidden');
@@ -314,18 +296,9 @@
     }
 
     function loadBookings() {
-      if (!supabaseClient) return;
-
-      supabaseClient
-        .from('bookings')
-        .select('*')
-        .order('id', { ascending: false })
-        .then(({ data, error }) => {
-          if (error) {
-            throw error;
-          }
-          renderBookings(data);
-        })
+      fetch(`${WORKER_URL}/bookings`)
+        .then(res => res.json())
+        .then(bookings => renderBookings(bookings))
         .catch(err => {
           console.error('Error:', err);
           document.getElementById('bookingsContainer').innerHTML = `<div class="error">Failed to load bookings: ${err.message}</div>`;
@@ -374,70 +347,29 @@
         `;
       });
 
-      html += `
-          </tbody>
-        </table>
-      `;
-
+      html += `</tbody></table>`;
       document.getElementById('bookingsContainer').innerHTML = html;
     }
 
     function viewDetails(booking) {
       let html = `
         <div class="booking-details">
-          <div class="detail-row">
-            <strong>Reference:</strong>
-            <span>${booking.reference}</span>
-          </div>
-          <div class="detail-row">
-            <strong>Customer:</strong>
-            <span>${booking.fullname}</span>
-          </div>
-          <div class="detail-row">
-            <strong>Email:</strong>
-            <span>${booking.email}</span>
-          </div>
-          <div class="detail-row">
-            <strong>Phone:</strong>
-            <span>${booking.phone}</span>
-          </div>
-          <div class="detail-row">
-            <strong>ID Number:</strong>
-            <span>${booking.idnumber}</span>
-          </div>
-          <div class="detail-row">
-            <strong>License Number:</strong>
-            <span>${booking.licencenumber}</span>
-          </div>
-          <div class="detail-row">
-            <strong>Pickup Location:</strong>
-            <span>${booking.pickuplocation}</span>
-          </div>
-          <div class="detail-row">
-            <strong>Return Location:</strong>
-            <span>${booking.returnlocation}</span>
-          </div>
-          <div class="detail-row">
-            <strong>Dates:</strong>
-            <span>${booking.pickupdate} to ${booking.returndate}</span>
-          </div>
-          <div class="detail-row">
-            <strong>Rental Days:</strong>
-            <span>${booking.rentaldays}</span>
-          </div>
-          <div class="detail-row">
-            <strong>Total Amount:</strong>
-            <span>N$${booking.totalamount.toLocaleString()}</span>
-          </div>
-          <div class="detail-row">
-            <strong>Status:</strong>
-            <span><span class="status-badge status-${booking.status || 'pending'}">${(booking.status || 'pending').toUpperCase()}</span></span>
-          </div>
+          <div class="detail-row"><strong>Reference:</strong><span>${booking.reference}</span></div>
+          <div class="detail-row"><strong>Customer:</strong><span>${booking.fullname}</span></div>
+          <div class="detail-row"><strong>Email:</strong><span>${booking.email}</span></div>
+          <div class="detail-row"><strong>Phone:</strong><span>${booking.phone}</span></div>
+          <div class="detail-row"><strong>ID Number:</strong><span>${booking.idnumber}</span></div>
+          <div class="detail-row"><strong>License Number:</strong><span>${booking.licencenumber}</span></div>
+          <div class="detail-row"><strong>Pickup Location:</strong><span>${booking.pickuplocation}</span></div>
+          <div class="detail-row"><strong>Return Location:</strong><span>${booking.returnlocation}</span></div>
+          <div class="detail-row"><strong>Dates:</strong><span>${booking.pickupdate} to ${booking.returndate}</span></div>
+          <div class="detail-row"><strong>Rental Days:</strong><span>${booking.rentaldays}</span></div>
+          <div class="detail-row"><strong>Total Amount:</strong><span>N$${booking.totalamount.toLocaleString()}</span></div>
+          <div class="detail-row"><strong>Status:</strong><span><span class="status-badge status-${booking.status || 'pending'}">${(booking.status || 'pending').toUpperCase()}</span></span></div>
           ${booking.id_photo_url ? `<div class="file-preview"><a href="${booking.id_photo_url}" target="_blank" download>📄 Download ID Photo</a></div>` : ''}
           ${booking.license_photo_url ? `<div class="file-preview"><a href="${booking.license_photo_url}" target="_blank" download>📄 Download License Photo</a></div>` : ''}
         </div>
       `;
-
       document.getElementById('modalBody').innerHTML = html;
       document.getElementById('detailsModal').classList.add('show');
     }
@@ -449,20 +381,17 @@
     function updateStatus(reference, newStatus) {
       if (!confirm(`Are you sure you want to ${newStatus} this booking?`)) return;
 
-      supabaseClient
-        .from('bookings')
-        .update({ status: newStatus })
-        .eq('reference', reference)
-        .then(({ error }) => {
-          if (error) {
-            throw error;
-          }
+      fetch(`${WORKER_URL}/bookings/${reference}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      })
+        .then(res => res.json())
+        .then(() => {
           showMessage(`Booking ${newStatus}!`, 'success');
           loadBookings();
         })
-        .catch(err => {
-          showMessage(`Error updating booking: ${err.message}`, 'error');
-        });
+        .catch(err => showMessage(`Error: ${err.message}`, 'error'));
     }
 
     function showMessage(msg, type) {
@@ -471,31 +400,20 @@
       setTimeout(() => { div.innerHTML = ''; }, 5000);
     }
 
-    // Load auth from localStorage on page load
     window.addEventListener('load', () => {
       const saved = localStorage.getItem('quiverAuth');
       if (saved) {
         const auth = JSON.parse(saved);
         document.getElementById('apiKey').value = auth.apiKey;
         document.getElementById('projectUrl').value = auth.projectUrl;
-        currentAuth = auth;
-        try {
-          const { createClient } = window.supabase;
-          supabaseClient = createClient(auth.projectUrl, auth.apiKey);
-          document.getElementById('authSection').classList.add('hidden');
-          document.getElementById('dashboardSection').classList.remove('hidden');
-          loadBookings();
-        } catch (err) {
-          console.error('Error restoring session:', err);
-        }
+        document.getElementById('authSection').classList.add('hidden');
+        document.getElementById('dashboardSection').classList.remove('hidden');
+        loadBookings();
       }
     });
 
-    // Close modal on outside click
     document.getElementById('detailsModal').addEventListener('click', (e) => {
-      if (e.target === document.getElementById('detailsModal')) {
-        closeModal();
-      }
+      if (e.target === document.getElementById('detailsModal')) closeModal();
     });
   </script>
 </body>

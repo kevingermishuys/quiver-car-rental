@@ -27,6 +27,16 @@ export default {
       return handleAvailability(request, env, headers);
     }
 
+    // GET /api/admin/bookings - Get all bookings (admin only)
+    if (url.pathname === '/api/admin/bookings' && request.method === 'GET') {
+      return handleAdminGetBookings(request, env, headers);
+    }
+
+    // PATCH /api/admin/bookings/:reference - Update booking status (admin only)
+    if (url.pathname.match(/^\/api\/admin\/bookings\//) && request.method === 'PATCH') {
+      return handleAdminUpdateBooking(request, env, headers);
+    }
+
     return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers });
   }
 };
@@ -366,4 +376,66 @@ function generateReference() {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return result;
+}
+
+async function handleAdminGetBookings(request, env, headers) {
+  try {
+    if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY) {
+      return new Response(JSON.stringify({ error: 'Admin access not configured' }), { status: 500, headers });
+    }
+
+    const url = new URL(`${env.SUPABASE_URL}/rest/v1/bookings?order=id.desc`);
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}`,
+        'apikey': env.SUPABASE_SERVICE_KEY,
+      }
+    });
+
+    const bookings = await response.json();
+    return new Response(JSON.stringify(bookings), { status: 200, headers });
+  } catch (error) {
+    console.error('Admin get bookings error:', error);
+    return new Response(JSON.stringify({ error: 'Failed to fetch bookings: ' + error.message }), { status: 500, headers });
+  }
+}
+
+async function handleAdminUpdateBooking(request, env, headers) {
+  try {
+    if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY) {
+      return new Response(JSON.stringify({ error: 'Admin access not configured' }), { status: 500, headers });
+    }
+
+    const pathMatch = request.url.match(/\/api\/admin\/bookings\/(.+)$/);
+    if (!pathMatch) {
+      return new Response(JSON.stringify({ error: 'Invalid request' }), { status: 400, headers });
+    }
+
+    const reference = pathMatch[1];
+    const payload = await request.json();
+
+    const url = new URL(`${env.SUPABASE_URL}/rest/v1/bookings?reference=eq.${reference}`);
+    const response = await fetch(url.toString(), {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}`,
+        'apikey': env.SUPABASE_SERVICE_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (response.ok) {
+      return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+    } else {
+      const error = await response.text();
+      return new Response(JSON.stringify({ error: error }), { status: response.status, headers });
+    }
+  } catch (error) {
+    console.error('Admin update booking error:', error);
+    return new Response(JSON.stringify({ error: 'Failed to update booking: ' + error.message }), { status: 500, headers });
+  }
 }
