@@ -61,16 +61,14 @@ async function handleBooking(request, env, headers) {
     const reference = generateReference();
     const holdExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-    // Upload files if provided (temporarily disabled for testing)
     let idPhotoUrl = null;
     let licensePhotoUrl = null;
-    // TODO: Re-enable file uploads once Supabase permissions are fixed
-    // if (payload.id_photo_base64) {
-    //   idPhotoUrl = await uploadFileToSupabase(payload.id_photo_base64, `id-${reference}`, env);
-    // }
-    // if (payload.license_photo_base64) {
-    //   licensePhotoUrl = await uploadFileToSupabase(payload.license_photo_base64, `license-${reference}`, env);
-    // }
+    if (payload.id_photo_base64) {
+      idPhotoUrl = await uploadFileToSupabase(payload.id_photo_base64, `id-${reference}`, env);
+    }
+    if (payload.license_photo_base64) {
+      licensePhotoUrl = await uploadFileToSupabase(payload.license_photo_base64, `license-${reference}`, env);
+    }
 
     // Calculate total amount
     const rentalDays = payload.rentalDays || 1;
@@ -251,45 +249,34 @@ async function storeBooking(booking, env) {
   }
 }
 
-async function uploadFileToSupabase(base64Data, fileName, env) {
+async function uploadFileToSupabase(base64Data, baseName, env) {
   try {
-    if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY) {
-      console.warn('Supabase credentials not configured, skipping file upload');
-      return null;
-    }
+    if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY) return null;
 
-    const base64String = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data;
-    const binaryString = atob(base64String);
+    const match = /^data:([\w.+-]+\/[\w.+-]+);base64,/.exec(base64Data);
+    const mime = match ? match[1] : 'application/octet-stream';
+    const ext = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/heic': 'heic', 'application/pdf': 'pdf' }[mime] || 'bin';
+    const binaryString = atob(base64Data.includes(',') ? base64Data.split(',')[1] : base64Data);
     const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
+    for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
 
-    const url = `${env.SUPABASE_URL}/storage/v1/object/booking-documents/${fileName}`;
-
-    console.log(`Uploading file: ${fileName}`);
-
-    const response = await fetch(url, {
+    const path = `${baseName}.${ext}`;
+    const response = await fetch(`${env.SUPABASE_URL}/storage/v1/object/booking-documents/${path}`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}`,
         'apikey': env.SUPABASE_SERVICE_KEY,
-        'Content-Type': 'application/octet-stream'
+        'Content-Type': mime,
+        'x-upsert': 'true'
       },
-      body: bytes.buffer
+      body: bytes
     });
 
-    console.log(`Upload response status: ${response.status}`);
-
     if (!response.ok) {
-      const error = await response.text();
-      console.error('File upload error:', error);
+      console.error('File upload error:', response.status, await response.text());
       return null;
     }
-
-    const publicUrl = `${env.SUPABASE_URL}/storage/v1/object/public/booking-documents/${fileName}`;
-    console.log(`File uploaded: ${publicUrl}`);
-    return publicUrl;
+    return `booking-documents/${path}`;
   } catch (error) {
     console.error('File upload error:', error);
     return null;
