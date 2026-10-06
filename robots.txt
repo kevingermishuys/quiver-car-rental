@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /admin-bookings.html
+Disallow: /admin-reviews.html
+Disallow: /upload-form.html
+
+Sitemap: https://quivercarrental.com/sitemap.xml
