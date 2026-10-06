@@ -5,7 +5,7 @@
 // marks the deposit paid from the admin panel (see /api/admin/bookings).
 
 const HOLD_HOURS = 48;
-const DEPOSIT_AMOUNT = 5000;
+const DEPOSIT_AMOUNT = 3500;
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {

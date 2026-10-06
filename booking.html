@@ -161,7 +161,7 @@ header a[class~="bg-sun-600"]{padding-left:1rem;padding-right:1rem;padding-top:.
 <div><label class="bk-label" for="emergencyPhone">Emergency contact phone number <span class="bk-req">*</span></label><input class="bk-field" type="tel" id="emergencyPhone" autocomplete="off"/><p class="bk-error" id="err-emergencyPhone" role="alert" hidden></p></div>
 </div>
 <p class="bk-hint">Someone we can call if we're unable to reach you during your rental — a family member, friend, or colleague.</p>
-<div class="mt-7 bk-callout"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 shrink-0 text-sun-700" aria-hidden="true" style="flex-shrink:0"><path d="M14.5 4h-5L7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-3l-2.5-3Z"></path><circle cx="12" cy="13" r="3"></circle></svg><span><span class="font-semibold text-ink-950">What to bring:</span> a valid identification document, a passport and a driver's licence. A refundable deposit of N$5,000 applies — returned in full if there is no damage to the vehicle (see the rental contract). Quiver Car Rental also carries passenger liability insurance on every vehicle.</span></div>
+<div class="mt-7 bk-callout"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 shrink-0 text-sun-700" aria-hidden="true" style="flex-shrink:0"><path d="M14.5 4h-5L7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-3l-2.5-3Z"></path><circle cx="12" cy="13" r="3"></circle></svg><span><span class="font-semibold text-ink-950">What to bring:</span> a valid identification document, a passport and a driver's licence. A refundable deposit of N$3,500 applies — returned in full if there is no damage to the vehicle (see the rental contract). Quiver Car Rental also carries passenger liability insurance on every vehicle.</span></div>
 <div class="bk-grid-2 mt-6">
 <div><label class="bk-label" for="idNumber">ID or passport number <span class="text-ink-400" style="text-transform:none;letter-spacing:normal;font-weight:400;">(optional)</span></label><input class="bk-field" type="text" id="idNumber"/></div>
 <div><label class="bk-label" for="licenceNumber">Driver's licence number <span class="text-ink-400" style="text-transform:none;letter-spacing:normal;font-weight:400;">(optional)</span></label><input class="bk-field" type="text" id="licenceNumber"/></div>
@@ -222,13 +222,13 @@ header a[class~="bg-sun-600"]{padding-left:1rem;padding-right:1rem;padding-top:.
 <button type="button" id="submitBooking" class="bk-btn bk-btn-primary bk-pay-btn"><span id="submitBookingLabel">Pay N$0</span></button>
 </div>
 
-<p class="bk-pay-fineprint">Payments are processed securely by PayToday. <strong>This is a visual preview</strong> — no card details are sent, stored, or charged. Once PayToday is connected, this card entry will be replaced by their secure hosted payment fields. Your N$5,000 deposit is refundable — returned in full after your rental if there is no damage to the vehicle. Your ID/passport and driver's licence photos will be included with the confirmation email sent to us once payment is live — in this preview they stay on your device and are not uploaded anywhere.</p>
+<p class="bk-pay-fineprint">Payments are processed securely by PayToday. <strong>This is a visual preview</strong> — no card details are sent, stored, or charged. Once PayToday is connected, this card entry will be replaced by their secure hosted payment fields. Your N$3,500 deposit is refundable — returned in full after your rental if there is no damage to the vehicle. Your ID/passport and driver's licence photos will be included with the confirmation email sent to us once payment is live — in this preview they stay on your device and are not uploaded anywhere.</p>
 </div>
 
 <div id="afterSubmit" hidden>
 <div class="bk-callout" style="border-color:rgb(22 101 52);background:rgb(220 252 231);color:rgb(22 101 52)">
 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></svg>
-<span><span class="font-semibold">Payment received (preview) — reference <span id="bookingRef"></span>.</span> Your booking is confirmed for the dates above. This includes a N$5,000 refundable deposit, returned in full after your rental if there is no damage to the vehicle. In preview mode no real charge was made; once PayToday is connected this step will process a real payment instantly. Hold reference valid until <span id="holdExpiry"></span>.</span>
+<span><span class="font-semibold">Payment received (preview) — reference <span id="bookingRef"></span>.</span> Your booking is confirmed for the dates above. This includes a N$3,500 refundable deposit, returned in full after your rental if there is no damage to the vehicle. In preview mode no real charge was made; once PayToday is connected this step will process a real payment instantly. Hold reference valid until <span id="holdExpiry"></span>.</span>
 </div>
 <p class="bk-hint mt-4">Want to reach us directly too? Optional — not required to confirm your booking.</p>
 <div class="mt-3 flex flex-col gap-3 sm:flex-row">
@@ -261,7 +261,7 @@ var LOCATION_RATES = {
   "Walvis Bay International Airport": 1900,
   "Hosea Kutako International Airport (Windhoek)": 2050
 };
-var DEPOSIT_AMOUNT = 5000;
+var DEPOSIT_AMOUNT = 3500;
 // Set this once a hosted-checkout deposit link (PayToday / PayGate / Ozow, etc.) is ready.
 // When set, a confirmed booking redirects here instead of falling back to WhatsApp/email.
 // Expected shape: a base URL that accepts amount/reference/return_url query params.

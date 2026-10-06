@@ -81,7 +81,7 @@ async function handleBooking(request, env, headers) {
     };
     const dailyRate = rates[payload.pickupLocation] || 1850;
     const rentalAmount = dailyRate * rentalDays;
-    const depositAmount = 5000;
+    const depositAmount = 3500;
     const totalAmount = rentalAmount + depositAmount;
 
     // Prepare booking data
