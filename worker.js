@@ -111,7 +111,11 @@ async function handleBooking(request, env, headers) {
     await sendCustomerConfirmationEmail(booking, env);
 
     // Send notification email to you
-    await sendNotificationEmail(booking, env);
+    const attachments = [
+      toAttachment(payload.id_photo_base64, `id-${reference}`),
+      toAttachment(payload.license_photo_base64, `license-${reference}`)
+    ].filter(Boolean);
+    await sendNotificationEmail(booking, env, attachments);
 
     // If payment provider is configured, return payment URL
     let paymentUrl = null;
@@ -341,7 +345,15 @@ Swakopmund, Namibia
   }
 }
 
-async function sendNotificationEmail(booking, env) {
+function toAttachment(dataUrl, baseName) {
+  if (!dataUrl) return null;
+  const match = /^data:([\w.+-]+\/[\w.+-]+);base64,(.*)$/s.exec(dataUrl);
+  if (!match) return null;
+  const ext = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/heic': 'heic', 'application/pdf': 'pdf' }[match[1]] || 'bin';
+  return { filename: `${baseName}.${ext}`, content: match[2] };
+}
+
+async function sendNotificationEmail(booking, env, attachments = []) {
   try {
     const adminEmail = 'quivercar@gmail.com';
 
@@ -386,7 +398,8 @@ Please review and confirm with the customer.
         from: 'noreply@quivercarrental.com',
         to: adminEmail,
         subject: `New Booking Request - Reference: ${booking.reference}`,
-        text: emailBody
+        text: emailBody,
+        attachments
       })
     });
 
