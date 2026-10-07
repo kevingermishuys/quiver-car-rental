@@ -343,8 +343,8 @@ Booking Details:
 - Total Due: N$${booking.totalamount.toLocaleString()}
 
 To confirm your booking, please pay N$${booking.totalamount.toLocaleString()} (rental + refundable deposit) within 24 hours:
-1. Open: ${PAYTODAY_URL}
-2. Enter your details, Payment Reference: ${booking.reference} and Amount: ${booking.totalamount}
+1. Open: ${PAYTODAY_URL}&reference=${booking.reference}&amount=${booking.totalamount}
+2. Check the reference (${booking.reference}) and amount (${booking.totalamount}) are filled in, and enter your details
 Your booking is confirmed once payment is received.
 
 Contact: +264 81 808 9213 (WhatsApp)

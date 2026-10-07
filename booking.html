@@ -266,6 +266,10 @@ var DEPOSIT_AMOUNT = 3500;
 // Set this once a hosted-checkout deposit link (PayToday / PayGate / Ozow, etc.) is ready.
 // When set, a confirmed booking redirects here instead of falling back to WhatsApp/email.
 // Expected shape: a base URL that accepts amount/reference/return_url query params.
+function payTodayUrl(base, ref, amount, name, email, phone){
+  var safe=/^[A-Za-z0-9@._-]+$/, parts=String(name||"").trim().split(/\s+/), q=[["reference",ref],["amount",amount],["user_first_name",parts[0]],["user_last_name",parts.length>1?parts[parts.length-1]:""],["user_email",String(email||"").trim()],["user_contact_number",String(phone||"").replace(/\D/g,"")]];
+  return base+q.filter(function(p){return p[1]!==""&&p[1]!=null&&safe.test(String(p[1]));}).map(function(p){return "&"+p[0]+"="+p[1];}).join("");
+}
 var PAYTODAY_URL = "https://site.paytoday.com.na/webpayment/?account=5468";
 
 // Supabase configuration for file uploads
@@ -715,8 +719,9 @@ $("submitBooking").addEventListener("click", async function(){
     lastBooking.total = result.totalAmount;
     $("payTodayRef").textContent = lastBooking.reference;
     $("payTodayAmount").textContent = "N$" + Number(result.totalAmount).toLocaleString();
-    $("payTodayLink").href = PAYTODAY_URL;
-    $("payTodayFrame").src = PAYTODAY_URL;
+    var payHref = payTodayUrl(PAYTODAY_URL, lastBooking.reference, result.totalAmount, $("fullName").value, $("email").value, $("phone").value);
+    $("payTodayLink").href = payHref;
+    $("payTodayFrame").src = payHref;
     $("bookingRef").textContent = lastBooking.reference;
     $("holdExpiry").textContent = lastBooking.holdExpiresAt;
     $("submitRow").hidden = true;
