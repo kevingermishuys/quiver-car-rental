@@ -1,3 +1,5 @@
+const PAYTODAY_URL = 'https://site.paytoday.com.na/webpayment/?account=5468';
+
 // Cloudflare Worker for Quiver Car Rental Booking API
 // Handles: validation, storage, email notifications, payment processing
 
@@ -122,11 +124,7 @@ async function handleBooking(request, env, headers) {
     ].filter(Boolean);
     await sendNotificationEmail(booking, env, attachments);
 
-    // If payment provider is configured, return payment URL
-    let paymentUrl = null;
-    if (env.PAYMENT_PROVIDER_URL) {
-      paymentUrl = buildPaymentUrl(booking, env);
-    }
+    const paymentUrl = PAYTODAY_URL;
 
     return new Response(JSON.stringify({
       success: true,
@@ -344,7 +342,10 @@ Booking Details:
 - Refundable Deposit: N$${booking.depositamount.toLocaleString()}
 - Total Due: N$${booking.totalamount.toLocaleString()}
 
-We will confirm availability and pricing with you shortly via WhatsApp or email.
+To confirm your booking, please pay N$${booking.totalamount.toLocaleString()} (rental + refundable deposit) within 24 hours:
+1. Open: ${PAYTODAY_URL}
+2. Enter your details, Payment Reference: ${booking.reference} and Amount: ${booking.totalamount}
+Your booking is confirmed once payment is received.
 
 Contact: +264 81 808 9213 (WhatsApp)
 Email: quivercar@gmail.com
@@ -418,7 +419,7 @@ Rental: N$${booking.rentalamount.toLocaleString()}
 Deposit: N$${booking.depositamount.toLocaleString()}
 Total: N$${booking.totalamount.toLocaleString()}
 
-Please review and confirm with the customer.
+Customer has been sent PayToday payment instructions (reference above). Confirm the booking in Supabase (status = confirmed) once payment shows in PayToday.
     `.trim();
 
     if (!env.RESEND_API_KEY) {
@@ -449,18 +450,6 @@ Please review and confirm with the customer.
   } catch (error) {
     console.error('Notification error:', error);
   }
-}
-
-function buildPaymentUrl(booking, env) {
-  const baseUrl = env.PAYMENT_PROVIDER_URL;
-  const params = new URLSearchParams({
-    amount: booking.totalAmount * 100, // Convert to cents
-    reference: booking.reference,
-    return_url: 'https://quivercarrental.com/booking.html?success=true',
-    customer_email: booking.email,
-    customer_name: booking.fullName
-  });
-  return `${baseUrl}?${params.toString()}`;
 }
 
 function generateReference() {
