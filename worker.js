@@ -22,6 +22,11 @@ export default {
       return handleBooking(request, env, headers);
     }
 
+    // POST /api/bookings/lookup - Customer views their own booking
+    if (url.pathname === '/api/bookings/lookup' && request.method === 'POST') {
+      return handleLookup(request, env, headers);
+    }
+
     // GET /api/bookings/availability - Check availability
     if (url.pathname === '/api/bookings/availability' && request.method === 'GET') {
       return handleAvailability(request, env, headers);
@@ -139,25 +144,59 @@ async function handleBooking(request, env, headers) {
 
 async function handleAvailability(request, env, headers) {
   try {
-    const url = new URL(request.url);
-    const pickupDate = url.searchParams.get('pickupDate');
-    const returnDate = url.searchParams.get('returnDate');
-
-    if (!pickupDate || !returnDate) {
-      return new Response(JSON.stringify({ error: 'Missing dates' }), { status: 400, headers });
-    }
-
-    const blocked = await getBlockedDates(env);
-    const isAvailable = !blocked.some(d => (d >= pickupDate && d <= returnDate));
-
-    return new Response(JSON.stringify({
-      available: isAvailable,
-      blockedDates: blocked
-    }), { status: 200, headers });
-
+    const blocked = await getBlockedRanges(env);
+    return new Response(JSON.stringify({ blocked }), { status: 200, headers });
   } catch (error) {
     console.error('Availability error:', error);
-    return new Response(JSON.stringify({ available: true, error: error.message }), { status: 200, headers });
+    return new Response(JSON.stringify({ blocked: [], error: error.message }), { status: 200, headers });
+  }
+}
+
+async function handleLookup(request, env, headers) {
+  const notFound = () => new Response(JSON.stringify({ error: 'We could not find a booking with that reference and email.' }), { status: 404, headers });
+  try {
+    const { reference, email } = await request.json();
+    if (!reference || !email || !env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY) return notFound();
+
+    const auth = { 'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}`, 'apikey': env.SUPABASE_SERVICE_KEY };
+    const ref = String(reference).trim().toUpperCase();
+    const res = await fetch(`${env.SUPABASE_URL}/rest/v1/bookings?reference=eq.${encodeURIComponent(ref)}&limit=1`, { headers: auth });
+    const rows = res.ok ? await res.json() : [];
+    const b = rows[0];
+    if (!b || String(b.email || '').trim().toLowerCase() !== String(email).trim().toLowerCase()) return notFound();
+
+    const sign = async (path) => {
+      if (!path) return null;
+      const r = await fetch(`${env.SUPABASE_URL}/storage/v1/object/sign/${path}`, {
+        method: 'POST',
+        headers: { ...auth, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ expiresIn: 600 })
+      });
+      if (!r.ok) return null;
+      const { signedURL } = await r.json();
+      return signedURL ? `${env.SUPABASE_URL}/storage/v1${signedURL}` : null;
+    };
+
+    return new Response(JSON.stringify({
+      reference: b.reference,
+      status: b.status,
+      paymentStatus: b.paymentstatus || null,
+      fullName: b.fullname,
+      pickupLocation: b.pickuplocation,
+      returnLocation: b.returnlocation,
+      pickupDate: b.pickupdate,
+      returnDate: b.returndate,
+      rentalDays: b.rentaldays,
+      rentalAmount: b.rentalamount,
+      depositAmount: b.depositamount,
+      totalAmount: b.totalamount,
+      holdExpiresAt: b.holdexpiresat,
+      idPhotoUrl: await sign(b.id_photo_url),
+      licensePhotoUrl: await sign(b.license_photo_url)
+    }), { status: 200, headers });
+  } catch (error) {
+    console.error('Lookup error:', error);
+    return notFound();
   }
 }
 
@@ -193,32 +232,30 @@ function validateBooking(payload) {
 
 async function checkAvailability(payload, env) {
   try {
-    const blocked = await getBlockedDates(env);
-    const pickup = payload.pickupDate;
-    const returnDate = payload.returnDate;
-
-    const isBlocked = blocked.some(d => (d >= pickup && d <= returnDate));
-    if (isBlocked) {
+    const blocked = await getBlockedRanges(env);
+    const conflict = blocked.some(r => payload.pickupDate <= r.end && payload.returnDate >= r.start);
+    if (conflict) {
       return { available: false, reason: 'Vehicle not available for selected dates' };
     }
-
     return { available: true };
   } catch (error) {
     console.warn('Availability check warning:', error);
-    // If check fails, allow booking to proceed (fail open)
     return { available: true };
   }
 }
 
-async function getBlockedDates(env) {
-  try {
-    // Fetch blocked dates from database or return empty array
-    // TODO: Implement when database is set up
-    return [];
-  } catch (error) {
-    console.warn('Error fetching blocked dates:', error);
-    return [];
-  }
+async function getBlockedRanges(env) {
+  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY) return [];
+  const today = new Date().toISOString().split('T')[0];
+  const res = await fetch(
+    `${env.SUPABASE_URL}/rest/v1/bookings?select=pickupdate,returndate,status,holdexpiresat&status=in.(pending,confirmed)&returndate=gte.${today}`,
+    { headers: { 'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}`, 'apikey': env.SUPABASE_SERVICE_KEY } }
+  );
+  if (!res.ok) throw new Error('Availability query failed: ' + res.status);
+  const rows = await res.json();
+  return rows
+    .filter(r => r.status === 'confirmed' || !r.holdexpiresat || r.holdexpiresat >= today)
+    .map(r => ({ start: r.pickupdate, end: r.returndate }));
 }
 
 async function storeBooking(booking, env) {
@@ -296,6 +333,7 @@ Thank you for your booking request with Quiver Car Rental!
 
 Your booking reference: ${booking.reference}
 Dates held until: ${booking.holdexpiresat}
+View your booking anytime: https://quivercarrental.com/view-booking.html
 
 Booking Details:
 - Pickup: ${booking.pickupdate} at ${booking.pickuplocation}
