@@ -230,7 +230,7 @@ header a[class~="bg-sun-600"]{padding-left:1rem;padding-right:1rem;padding-top:.
 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></svg>
 <span><span class="font-semibold">Booking received — reference <span id="bookingRef"></span>.</span> Your dates are held until <span id="holdExpiry"></span>. <strong>Your booking is confirmed once payment is received.</strong></span>
 </div>
-<div class="bk-callout mt-4" style="flex-direction:column;align-items:flex-start;gap:.75rem"><div><span class="font-semibold">Next step: pay <span id="payTodayAmount"></span> below.</span> In the form below enter your name, contact details, <strong>Payment Reference: <span id="payTodayRef"></span></strong> and <strong>Amount</strong> exactly as shown. This includes the N$3,500 refundable deposit.</div><iframe id="payTodayFrame" title="Secure payment by PayToday" style="width:100%;height:820px;border:1px solid rgb(0 0 0 / .12);border-radius:.5rem;background:#fff" loading="lazy"></iframe><a id="payTodayLink" href="https://site.paytoday.com.na/webpayment/?account=5468" target="_blank" rel="noopener" style="text-decoration:underline;font-size:.875rem">Payment form not showing? Open it in a new tab</a><a href="view-booking.html" style="text-decoration:underline">View my booking anytime</a></div>
+<div class="bk-callout mt-4" style="flex-direction:column;align-items:flex-start;gap:.75rem"><div><span class="font-semibold">Next step: pay <span id="payTodayAmount"></span>.</span> You will be taken to PayToday's secure checkout with the amount already set, then returned here. This includes the N$3,500 refundable deposit.</div><button type="button" id="payNowBtn" class="bk-btn bk-btn-primary">Pay securely</button><p class="bk-error" id="err-pay" role="alert" hidden></p><a href="view-booking.html" style="text-decoration:underline">View my booking anytime</a></div>
 <p class="bk-hint mt-4">Want to reach us directly too? Optional — not required to confirm your booking.</p>
 <div class="mt-3 flex flex-col gap-3 sm:flex-row">
 <button type="button" id="sendWhatsapp" class="bk-btn bk-btn-outline">Send via WhatsApp</button>
@@ -266,11 +266,7 @@ var DEPOSIT_AMOUNT = 3500;
 // Set this once a hosted-checkout deposit link (PayToday / PayGate / Ozow, etc.) is ready.
 // When set, a confirmed booking redirects here instead of falling back to WhatsApp/email.
 // Expected shape: a base URL that accepts amount/reference/return_url query params.
-function payTodayUrl(base, ref, amount, name, email, phone){
-  var safe=/^[A-Za-z0-9@._-]+$/, parts=String(name||"").trim().split(/\s+/), q=[["reference",ref],["amount",amount],["user_first_name",parts[0]],["user_last_name",parts.length>1?parts[parts.length-1]:""],["user_email",String(email||"").trim()],["user_contact_number",String(phone||"").replace(/\D/g,"")]];
-  return base+q.filter(function(p){return p[1]!==""&&p[1]!=null&&safe.test(String(p[1]));}).map(function(p){return "&"+p[0]+"="+p[1];}).join("");
-}
-var PAYTODAY_URL = "https://site.paytoday.com.na/webpayment/?account=5468";
+var PAY_API = "https://quiver-bookings-api-production.kevingermishuys.workers.dev/api/bookings/pay";
 
 // Supabase configuration for file uploads
 var SUPABASE_URL = "https://xgvquuiwdxwgeiodixuw.supabase.co";
@@ -717,11 +713,8 @@ $("submitBooking").addEventListener("click", async function(){
     lastBooking = { reference: result.reference, holdExpiresAt: result.holdExpiresAt };
 
     lastBooking.total = result.totalAmount;
-    $("payTodayRef").textContent = lastBooking.reference;
     $("payTodayAmount").textContent = "N$" + Number(result.totalAmount).toLocaleString();
-    var payHref = payTodayUrl(PAYTODAY_URL, lastBooking.reference, result.totalAmount, $("fullName").value, $("email").value, $("phone").value);
-    $("payTodayLink").href = payHref;
-    $("payTodayFrame").src = payHref;
+    lastBooking.email = $("email").value;
     $("bookingRef").textContent = lastBooking.reference;
     $("holdExpiry").textContent = lastBooking.holdExpiresAt;
     $("submitRow").hidden = true;
@@ -742,6 +735,16 @@ $("submitBooking").addEventListener("click", async function(){
         .catch(function(){});
     }
   }
+});
+
+$("payNowBtn").addEventListener("click", async function(){
+  var btn = $("payNowBtn"); btn.disabled = true; $("err-pay").hidden = true;
+  try {
+    var r = await fetch(PAY_API, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ reference: lastBooking.reference, email: lastBooking.email }) });
+    var d = await r.json();
+    if (!r.ok || !d.paymentUrl) throw new Error(d.error || "Could not start the payment.");
+    window.location.href = d.paymentUrl;
+  } catch(e){ $("err-pay").textContent = e.message; $("err-pay").hidden = false; btn.disabled = false; }
 });
 
 $("sendWhatsapp").addEventListener("click", function(){

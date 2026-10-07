@@ -1,4 +1,7 @@
-const PAYTODAY_URL = 'https://site.paytoday.com.na/webpayment/?account=5468';
+const PAYTODAY_FORMS_URL = 'https://admin.today.com.na/web/customs/vendor/forms/';
+const PAYTODAY_VI = 'fw3cO2vUYX5tGq/i';
+const PAYTODAY_BUSINESS_ID = '5468';
+const SITE_URL = 'https://quivercarrental.com';
 
 // Cloudflare Worker for Quiver Car Rental Booking API
 // Handles: validation, storage, email notifications, payment processing
@@ -27,6 +30,11 @@ export default {
     // POST /api/bookings/lookup - Customer views their own booking
     if (url.pathname === '/api/bookings/lookup' && request.method === 'POST') {
       return handleLookup(request, env, headers);
+    }
+
+    // POST /api/bookings/pay - Create a locked-amount PayToday payment for a booking
+    if (url.pathname === '/api/bookings/pay' && request.method === 'POST') {
+      return handlePay(request, env, headers);
     }
 
     // GET /api/bookings/availability - Check availability
@@ -124,14 +132,11 @@ async function handleBooking(request, env, headers) {
     ].filter(Boolean);
     await sendNotificationEmail(booking, env, attachments);
 
-    const paymentUrl = PAYTODAY_URL;
-
     return new Response(JSON.stringify({
       success: true,
       reference: booking.reference,
       holdExpiresAt: booking.holdexpiresat,
-      totalAmount: booking.totalamount,
-      paymentUrl: paymentUrl
+      totalAmount: booking.totalamount
     }), { status: 200, headers });
 
   } catch (error) {
@@ -150,18 +155,63 @@ async function handleAvailability(request, env, headers) {
   }
 }
 
-async function handleLookup(request, env, headers) {
-  const notFound = () => new Response(JSON.stringify({ error: 'We could not find a booking with that reference and email.' }), { status: 404, headers });
+async function findBooking(env, reference, email) {
+  if (!reference || !email || !env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY) return null;
+  const auth = { 'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}`, 'apikey': env.SUPABASE_SERVICE_KEY };
+  const ref = String(reference).trim().toUpperCase();
+  const res = await fetch(`${env.SUPABASE_URL}/rest/v1/bookings?reference=eq.${encodeURIComponent(ref)}&limit=1`, { headers: auth });
+  const rows = res.ok ? await res.json() : [];
+  const b = rows[0];
+  if (!b || String(b.email || '').trim().toLowerCase() !== String(email).trim().toLowerCase()) return null;
+  return b;
+}
+
+const NOT_FOUND_MSG = 'We could not find a booking with that reference and email.';
+
+async function handlePay(request, env, headers) {
   try {
     const { reference, email } = await request.json();
-    if (!reference || !email || !env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY) return notFound();
+    const b = await findBooking(env, reference, email);
+    if (!b) return new Response(JSON.stringify({ error: NOT_FOUND_MSG }), { status: 404, headers });
+    if (b.status !== 'pending') {
+      return new Response(JSON.stringify({ error: 'This booking is not awaiting payment.' }), { status: 400, headers });
+    }
 
+    const parts = String(b.fullname || '').trim().split(/\s+/);
+    const res = await fetch(PAYTODAY_FORMS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        vi: PAYTODAY_VI,
+        business_id: PAYTODAY_BUSINESS_ID,
+        return_url: `${SITE_URL}/view-booking.html?ref=${encodeURIComponent(b.reference)}`,
+        user_first_name: parts[0] || 'Customer',
+        user_last_name: parts.length > 1 ? parts.slice(1).join(' ') : '-',
+        user_contact_number: String(b.phone || '').replace(/\D/g, '') || '0',
+        user_email: b.email,
+        reference: b.reference,
+        amount: Number(b.totalamount)
+      })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success || !data.payment_url) {
+      console.error('PayToday error:', res.status, JSON.stringify(data));
+      return new Response(JSON.stringify({ error: 'Could not start the payment. Please try again or contact us.' }), { status: 502, headers });
+    }
+    return new Response(JSON.stringify({ paymentUrl: data.payment_url }), { status: 200, headers });
+  } catch (error) {
+    console.error('Pay error:', error);
+    return new Response(JSON.stringify({ error: 'Could not start the payment. Please try again or contact us.' }), { status: 500, headers });
+  }
+}
+
+async function handleLookup(request, env, headers) {
+  const notFound = () => new Response(JSON.stringify({ error: NOT_FOUND_MSG }), { status: 404, headers });
+  try {
+    const { reference, email } = await request.json();
+    const b = await findBooking(env, reference, email);
+    if (!b) return notFound();
     const auth = { 'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}`, 'apikey': env.SUPABASE_SERVICE_KEY };
-    const ref = String(reference).trim().toUpperCase();
-    const res = await fetch(`${env.SUPABASE_URL}/rest/v1/bookings?reference=eq.${encodeURIComponent(ref)}&limit=1`, { headers: auth });
-    const rows = res.ok ? await res.json() : [];
-    const b = rows[0];
-    if (!b || String(b.email || '').trim().toLowerCase() !== String(email).trim().toLowerCase()) return notFound();
 
     const sign = async (path) => {
       if (!path) return null;
@@ -331,7 +381,6 @@ Thank you for your booking request with Quiver Car Rental!
 
 Your booking reference: ${booking.reference}
 Dates held until: ${booking.holdexpiresat}
-View your booking anytime: https://quivercarrental.com/view-booking.html
 
 Booking Details:
 - Pickup: ${booking.pickupdate} at ${booking.pickuplocation}
@@ -342,9 +391,9 @@ Booking Details:
 - Refundable Deposit: N$${booking.depositamount.toLocaleString()}
 - Total Due: N$${booking.totalamount.toLocaleString()}
 
-To confirm your booking, please pay N$${booking.totalamount.toLocaleString()} (rental + refundable deposit) within 24 hours:
-1. Open: ${PAYTODAY_URL}&reference=${booking.reference}&amount=${booking.totalamount}
-2. Check the reference (${booking.reference}) and amount (${booking.totalamount}) are filled in, and enter your details
+To confirm your booking, please pay N$${booking.totalamount.toLocaleString()} (rental + refundable deposit) within 24 hours.
+Pay securely online: https://quivercarrental.com/view-booking.html
+(enter your reference and this email address, then press "Pay securely")
 Your booking is confirmed once payment is received.
 
 Contact: +264 81 808 9213 (WhatsApp)
