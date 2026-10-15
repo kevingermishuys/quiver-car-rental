@@ -7,6 +7,14 @@ const SITE_URL = 'https://quivercarrental.com';
 // Handles: validation, storage, email notifications, payment processing
 
 export default {
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(
+      fetch(`${env.SUPABASE_URL}/rest/v1/bookings?select=reference&limit=1`, {
+        headers: { 'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}`, 'apikey': env.SUPABASE_SERVICE_KEY }
+      }).then(r => console.log('Keep-alive ping:', r.status)).catch(e => console.error('Keep-alive failed:', e.message))
+    );
+  },
+
   async fetch(request, env) {
     // CORS headers
     const headers = {
@@ -120,7 +128,12 @@ async function handleBooking(request, env, headers) {
     };
 
     // Store in database
-    await storeBooking(booking, env);
+    try {
+      await storeBooking(booking, env);
+    } catch (dbError) {
+      console.error('Booking not saved:', dbError.message);
+      return new Response(JSON.stringify({ error: 'Our booking system is temporarily unavailable, so your request was not saved. Please try again shortly or message us on WhatsApp +264 81 808 9213.' }), { status: 503, headers });
+    }
 
     // Send confirmation email to customer
     await sendCustomerConfirmationEmail(booking, env);
@@ -307,34 +320,23 @@ async function getBlockedRanges(env) {
 }
 
 async function storeBooking(booking, env) {
-  try {
-    if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY) {
-      console.warn('Supabase credentials not configured');
-      return;
-    }
+  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY) {
+    throw new Error('Supabase credentials not configured');
+  }
 
-    const url = new URL(`${env.SUPABASE_URL}/rest/v1/bookings`);
-    url.searchParams.set('apikey', env.SUPABASE_SERVICE_KEY);
+  const response = await fetch(`${env.SUPABASE_URL}/rest/v1/bookings`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}`,
+      'apikey': env.SUPABASE_SERVICE_KEY,
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify(booking)
+  });
 
-    const response = await fetch(url.toString(), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}`,
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify(booking)
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('Supabase error:', error);
-    } else {
-      console.log('Booking stored successfully:', booking.reference);
-    }
-  } catch (error) {
-    console.error('Database error:', error);
-    // Don't fail the booking if database write fails
+  if (!response.ok) {
+    throw new Error(`Supabase insert failed: ${response.status} ${await response.text()}`);
   }
 }
 
