@@ -1,0 +1,24 @@
+# Quiver Car Rental
+
+> Quiver Car Rental is a self-drive car rental company based in Swakopmund, Namibia. It rents one vehicle only: the Toyota Fortuner 4x4 (7-seat SUV, 2.4L turbo diesel, automatic), with unlimited kilometres.
+
+## Key facts
+- Location: Swakopmund, Erongo Region, Namibia. Time zone: Central Africa Time (UTC+2).
+- Vehicle: Toyota Fortuner 4x4, 7 seats, 2.4L turbo diesel, automatic transmission. It is the only vehicle rented.
+- Kilometres: unlimited, with no per-kilometre charge.
+- Rental period: charged per 24-hour period from collection (not calendar days). Minimum 3 days, no maximum.
+- Daily rate depends on pickup location: Swakopmund N$1,850; Hosea Kutako International Airport (Windhoek) N$1,900; Walvis Bay International Airport N$2,050. Currency: Namibian dollars (NAD).
+- Refundable deposit: N$3,500, returned in full if there is no damage to the vehicle.
+- Handover points: Swakopmund (base), Hosea Kutako International Airport, Walvis Bay International Airport. No delivery to private addresses or hotels.
+- Requirements: valid ID or passport and a driver's licence. Passenger liability insurance is carried on every vehicle.
+- Booking: online at https://quivercarrental.com/booking, or by WhatsApp or email. Bookings from overseas are handled in English.
+- Contact: +264 81 808 9213 (WhatsApp), quivercar@gmail.com
+- Search terms: car rental Swakopmund, car hire Swakopmund, 4x4 rental Namibia, Toyota Fortuner hire Namibia, Autovermietung Swakopmund.
+
+## Pages
+- [Home - vehicle, rates, handover points and FAQ](https://quivercarrental.com/)
+- [Book a rental](https://quivercarrental.com/booking)
+- [Adventures and places visited](https://quivercarrental.com/adventures)
+- [Contact and quote](https://quivercarrental.com/contact)
+- [Terms and conditions](https://quivercarrental.com/terms)
+- [Privacy policy](https://quivercarrental.com/privacy)

@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "include": ["/", "/booking", "/adventures", "/contact", "/terms", "/privacy", "/view-booking", "/api/*"],
+  "exclude": []
+}

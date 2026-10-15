@@ -184,7 +184,7 @@ async function handlePay(request, env, headers) {
       body: JSON.stringify({
         vi: PAYTODAY_VI,
         business_id: PAYTODAY_BUSINESS_ID,
-        return_url: `${SITE_URL}/view-booking.html?ref=${encodeURIComponent(b.reference)}`,
+        return_url: `${SITE_URL}/view-booking?ref=${encodeURIComponent(b.reference)}`,
         user_first_name: parts[0] || 'Customer',
         user_last_name: parts.length > 1 ? parts.slice(1).join(' ') : '-',
         user_contact_number: String(b.phone || '').replace(/\D/g, '') || '0',
@@ -392,7 +392,7 @@ Booking Details:
 - Total Due: N$${booking.totalamount.toLocaleString()}
 
 To confirm your booking, please pay N$${booking.totalamount.toLocaleString()} (rental + refundable deposit) within 24 hours.
-Pay securely online: https://quivercarrental.com/view-booking.html
+Pay securely online: https://quivercarrental.com/view-booking
 (enter your reference and this email address, then press "Pay securely")
 Your booking is confirmed once payment is received.
 
