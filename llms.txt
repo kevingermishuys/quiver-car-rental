@@ -11,12 +11,16 @@
 - Refundable deposit: N$3,500, returned in full if there is no damage to the vehicle.
 - Handover points: Swakopmund (base), Hosea Kutako International Airport, Walvis Bay International Airport. No delivery to private addresses or hotels.
 - Requirements: valid ID or passport and a driver's licence. Passenger liability insurance is carried on every vehicle.
+- Languages: the website and communication are in English; a German-language overview page is available at /de.
 - Booking: online at https://quivercarrental.com/booking, or by WhatsApp or email. Bookings from overseas are handled in English.
 - Contact: +264 81 808 9213 (WhatsApp), quivercar@gmail.com
 - Search terms: car rental Swakopmund, car hire Swakopmund, 4x4 rental Namibia, Toyota Fortuner hire Namibia, Autovermietung Swakopmund.
 
 ## Pages
 - [Home - vehicle, rates, handover points and FAQ](https://quivercarrental.com/)
+- [Deutsch: Autovermietung Swakopmund](https://quivercarrental.com/de)
+- [Car rental at Windhoek Airport (Hosea Kutako, WDH)](https://quivercarrental.com/car-rental-windhoek-airport)
+- [Car rental at Walvis Bay Airport (WVB)](https://quivercarrental.com/car-rental-walvis-bay-airport)
 - [Book a rental](https://quivercarrental.com/booking)
 - [Adventures and places visited](https://quivercarrental.com/adventures)
 - [Contact and quote](https://quivercarrental.com/contact)

@@ -1,5 +1,5 @@
 {
   "version": 1,
-  "include": ["/", "/booking", "/adventures", "/contact", "/terms", "/privacy", "/view-booking", "/api/*"],
+  "include": ["/", "/de", "/booking", "/adventures", "/contact", "/terms", "/privacy", "/view-booking", "/car-rental-windhoek-airport", "/car-rental-walvis-bay-airport", "/api/*"],
   "exclude": []
 }
